@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        SE global flag summary
+// @name        Stack Exchange Global Flag Summary
 // @namespace   http://floern.com/
 // @version     0.5
-// @description Stack Exchange global flag summary for logged in user
+// @description Stack Exchange global flag summary available in your network profile
 // @author      Floern
 // @include     http*://stackexchange.com/users/*/*
 // @grant       GM_xmlhttpRequest
