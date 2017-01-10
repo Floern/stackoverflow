@@ -1,13 +1,20 @@
 // ==UserScript==
-// @name				Stack Exchange Global Flag Summary
-// @namespace	 http://floern.com/
-// @version		 0.5
-// @description Stack Exchange network wide flag summary available in your network profile
-// @author			Floern
-// @include		 http*://stackexchange.com/users/*/*
-// @grant			 GM_xmlhttpRequest
-// @grant			 GM_addStyle
-// @run-at			document-end
+// @name		Stack Exchange Global Flag Summary
+// @namespace	http://floern.com/
+// @version		0.5
+// @description	Stack Exchange network wide flag summary available in your network profile
+// @author		Floern
+// @include		*://stackexchange.com/users/*/*
+// @match       *://*.stackexchange.com/users/flag-summary/*
+// @match       *://*.stackoverflow.com/users/flag-summary/*
+// @match       *://*.superuser.com/users/flag-summary/*
+// @match       *://*.serverfault.com/users/flag-summary/*
+// @match       *://*.askubuntu.com/users/flag-summary/*
+// @match       *://*.stackapps.com/users/flag-summary/*
+// @match       *://*.mathoverflow.net/users/flag-summary/*
+// @grant		GM_xmlhttpRequest
+// @grant		GM_addStyle
+// @run-at		document-end
 // ==/UserScript==
 
 let flagSummaryTable, flagSummaryTableBody;
@@ -28,6 +35,11 @@ let flagGlobalSummaryStats = {
 
 // init
 (function () {
+	if (window.location.href.match(/\/users\/flag-summary\/\d+/i)) {
+		showGlobalFlagSummaryLink();
+		return;
+	}
+	
 	if (!window.location.href.match(/:\/\/stackexchange\.com\/users\/\d+/i)) {
 		return;
 	}
@@ -136,6 +148,24 @@ let flagGlobalSummaryStats = {
 
 
 /**
+ * Add a link to the flag summary page.
+ */
+function showGlobalFlagSummaryLink() {
+	let header = document.querySelector('#content .subheader');
+	if (!header) {
+		return;
+	}
+	
+	// add link to header
+	let segfsLink = document.createElement('a');
+	segfsLink.setAttribute('href', '//stackexchange.com/users/current?tab=flags');
+	segfsLink.textContent = 'Global Flag Summary';
+	segfsLink.style.float = 'right';
+	header.insertBefore(segfsLink, header.firstChild);
+}
+
+
+/**
  * Update global flag summary in header.
  */
 function updateGlobalFlagStats() {
@@ -162,8 +192,8 @@ function updateGlobalFlagStats() {
  */
 function loadAccountList() {
 	GM_xmlhttpRequest({
-		method: "GET",
-		url: "//stackexchange.com/users/current?tab=accounts",
+		method: 'GET',
+		url: '//stackexchange.com/users/current?tab=accounts',
 		onload: function(response) {
 			parseNetworkAccounts(response.response);
 		},
