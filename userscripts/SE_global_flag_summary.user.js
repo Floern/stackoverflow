@@ -12,6 +12,13 @@
 // @match         *://*.askubuntu.com/users/flag-summary/*
 // @match         *://*.stackapps.com/users/flag-summary/*
 // @match         *://*.mathoverflow.net/users/flag-summary/*
+// @connect       stackexchange.com
+// @connect       stackoverflow.com
+// @connect       superuser.com
+// @connect       serverfault.com
+// @connect       askubuntu.com
+// @connect       stackapps.com
+// @connect       mathoverflow.net	
 // @grant         GM_xmlhttpRequest
 // @grant         GM_addStyle
 // @run-at        document-end
