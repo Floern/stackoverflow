@@ -8,6 +8,16 @@ If you are logged into the Stack Exchange network, you can visit [your Stack Exc
 
 [![segfs screenshot](../resources/screens/segfs.png?raw=true)](../resources/screens/segfs.png?raw=true)
 
+### How does it work?
+
+The script scans [your network profile](http://stackexchange.com/users/current) for all Stack Exchange accounts you created. For each account it tries to access the flag summary page. Since that page is private, i.e. only visible to you (and mods), you need be logged in. From there it extracts the flag summary of the individual site and sums it all up in a generated table.
+
+The table can be sorted asc & desc by clicking on the desired column label.
+
+All per-site flag summary pages contain a link to the global flag summary.
+
+### Installation
+
 [view source](SE_global_flag_summary.user.js) | [direct link (install)](SE_global_flag_summary.user.js?raw=true)
 
 <sup>Tested with Greasemonkey on Firefox</sup>

@@ -110,6 +110,7 @@ let flagGlobalSummaryStats = {
                 <th>pending</th>
                 <th style="padding-left:20px">total</th>
                 <th>helpful %</th>
+                <th>last</th>
             </tr>
             <tr id="flag-summary-global-stats">
             </tr>
@@ -326,6 +327,12 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     // compute helpful percentage
     let realTotal = sumFlagsTotal - sumFlagsPending - sumFlagsRetracted - sumFlagsExpired;
     let helpfulFraction = realTotal == 0 ? 0 : (sumFlagsHelpful / realTotal);
+	
+	// get most recent flag date
+    let flagHistoryDates = pageNode.querySelectorAll('.user-flag-history .mod-flag .relativetime');
+	let mostRecentflagHistoryDateNode = flagHistoryDates[0];
+	let lastFlagTimestamp = mostRecentflagHistoryDateNode.title;
+	let lastFlagTimeDisplay = mostRecentflagHistoryDateNode.textContent.trim();
     
     // get site icon
     let siteFaviconURL = pageNode.querySelector('link[rel*="icon"]').href;
@@ -344,6 +351,7 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
         <td>` + formatFlagCount(sumFlagsPending) + `</td>
         <td>` + formatFlagCount(sumFlagsTotal) + `</td>
         <td>` + formatFlagPercentage(helpfulFraction) + `%</td>
+        <td style="color:#999" title="` + lastFlagTimestamp + `">` + lastFlagTimeDisplay + `%</td>
     `;
     flagSummaryTableBody.appendChild(siteFlagSummaryTr);
     
@@ -391,16 +399,19 @@ function sortTable(col, asc) {
     asc = -((+asc) || -1);
     if (col == 1) {
         trs = trs.sort(function (a, b) {
-                return asc
-                    * (a.cells[col].textContent.trim()
-                                .localeCompare(b.cells[col].textContent.trim()));
+            return asc * (a.cells[col].textContent.trim().localeCompare(b.cells[col].textContent.trim()));
+        });
+    }
+	else if (col == 10) {
+        trs = trs.sort(function (a, b) {
+            return asc * (a.cells[col].title.localeCompare(b.cells[col].title));
         });
     }
     else {
         trs = trs.sort(function (a, b) {
-                return asc
-                    * ((parseInt(b.cells[col].textContent.replace(/\D/g, '')) || 0) - 
-                    (parseInt(a.cells[col].textContent.replace(/\D/g, '')) || 0) );
+            return asc
+                * ((parseInt(b.cells[col].textContent.replace(/\D/g, '')) || 0) - 
+                (parseInt(a.cells[col].textContent.replace(/\D/g, '')) || 0) );
         });
     }
     for(var i = 0; i < trs.length; ++i) flagSummaryTableBody.appendChild(trs[i]);
