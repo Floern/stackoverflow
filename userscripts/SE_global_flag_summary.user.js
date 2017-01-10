@@ -4,7 +4,7 @@
 // @version     0.5
 // @description Stack Exchange global flag summary for logged in user
 // @author      Floern
-// @include     http://stackexchange.com/users/*/*
+// @include     http*://stackexchange.com/users/*/*
 // @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
 // @run-at      document-end
@@ -162,7 +162,7 @@ function updateGlobalFlagStats() {
 function loadAccountList() {
   GM_xmlhttpRequest({
     method: "GET",
-    url: "http://stackexchange.com/users/current?tab=accounts",
+    url: "//stackexchange.com/users/current?tab=accounts",
     onload: function(response) {
       parseNetworkAccounts(response.response);
     },
