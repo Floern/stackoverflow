@@ -110,7 +110,7 @@ let flagGlobalSummaryStats = {
                 <th>pending</th>
                 <th style="padding-left:20px">total</th>
                 <th>helpful %</th>
-                <th>last</th>
+                <th>last flag</th>
             </tr>
             <tr id="flag-summary-global-stats">
             </tr>
@@ -188,6 +188,7 @@ function updateGlobalFlagStats() {
         <th>` + formatFlagCount(flagGlobalSummaryStats.sumFlagsPending) + `</th>
         <th>` + formatFlagCount(flagGlobalSummaryStats.sumFlagsTotal) + `</th>
         <th>` + formatFlagPercentage(helpfulFraction) + `%</th>
+        <th></th>
     `;
 }
 
@@ -332,7 +333,7 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     let flagHistoryDates = pageNode.querySelectorAll('.user-flag-history .mod-flag .relativetime');
 	let mostRecentflagHistoryDateNode = flagHistoryDates[0];
 	let lastFlagTimestamp = mostRecentflagHistoryDateNode.title;
-	let lastFlagTimeDisplay = mostRecentflagHistoryDateNode.textContent.trim();
+	let lastFlagTimeDisplay = mostRecentflagHistoryDateNode.textContent.split('at')[0].trim();
     
     // get site icon
     let siteFaviconURL = pageNode.querySelector('link[rel*="icon"]').href;
@@ -351,7 +352,7 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
         <td>` + formatFlagCount(sumFlagsPending) + `</td>
         <td>` + formatFlagCount(sumFlagsTotal) + `</td>
         <td>` + formatFlagPercentage(helpfulFraction) + `%</td>
-        <td style="color:#999" title="` + lastFlagTimestamp + `">` + lastFlagTimeDisplay + `%</td>
+        <td style="color:#999" title="` + lastFlagTimestamp + `">` + lastFlagTimeDisplay + `</td>
     `;
     flagSummaryTableBody.appendChild(siteFlagSummaryTr);
     
