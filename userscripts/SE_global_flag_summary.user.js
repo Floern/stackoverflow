@@ -86,7 +86,7 @@ let flagGlobalSummaryStats = {
         navigation.parentNode.removeChild(navigation.nextSibling);
     }
     
-    document.querySelector('title').textContent = 'Global Flag Summary - Stack Exchange';
+    document.querySelector('title').textContent = 'Flag Summary - Stack Exchange';
     
     let container = document.createElement('div');
     navigation.parentNode.appendChild(container);
@@ -132,11 +132,14 @@ let flagGlobalSummaryStats = {
     
     flagSummaryTableBody = flagSummaryTable.getElementsByTagName('tbody')[0];
     
+	// some table CSS
     GM_addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .15); }");
-    GM_addStyle("#flag-summary-global-stats td { border-bottom: 1px #ddd solid; }");
+    GM_addStyle("#flag-summary-global-stats th { border-bottom: 1px #ddd solid; }");
     
+	// init global flag summary
     updateGlobalFlagStats();
     
+	// create loading view
     let loadingView = document.createElement("div");
     loadingView.id = 'flag-summary-loading';
     loadingView.style.textAlign = 'center';
@@ -344,10 +347,14 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     `;
     flagSummaryTableBody.appendChild(siteFlagSummaryTr);
     
+	// keep order
     sortTable(sortedColIndex, sortedColAsc);
 }
 
 
+/**
+ * Format flag count, empty if 0.
+ */
 function formatFlagCount(flagCount) {
     if (flagCount == 0)
         return '';
@@ -356,6 +363,9 @@ function formatFlagCount(flagCount) {
 }
 
 
+/**
+ * Format helpful flag percentage.
+ */
 function formatFlagPercentage(fraction) {
     return (fraction * 100).toFixed(2);
 }
