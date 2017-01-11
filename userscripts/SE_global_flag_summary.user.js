@@ -18,7 +18,7 @@
 // @connect       serverfault.com
 // @connect       askubuntu.com
 // @connect       stackapps.com
-// @connect       mathoverflow.net	
+// @connect       mathoverflow.net
 // @grant         GM_xmlhttpRequest
 // @grant         GM_addStyle
 // @run-at        document-end
@@ -61,7 +61,7 @@ let flagGlobalSummaryStats = {
     // verify that we are in the profile of the logged in user
     let tabs = tabbar.getElementsByTagName('a');
     let loggedIn = false;
-    for (var i = 0; i < tabs.length; i++) {
+    for (let i = 0; i < tabs.length; i++) {
         if (tabs[i].textContent.trim().toLowerCase() == 'inbox') {
             loggedIn = true;
             break;
@@ -129,25 +129,24 @@ let flagGlobalSummaryStats = {
     
     // make columns sortable
     let tableLabelNodes = flagSummaryTable.querySelectorAll('#flag-summary-heading-labels th');
-    for (var i = 0; i < tableLabelNodes.length; i++) {
-        (function(col) {
-            tableLabelNodes[i].onclick = function() {
-                sortedColAsc = col == sortedColIndex ? !sortedColAsc : false;
-                sortTable(col, sortedColAsc);
-            }
-        })(i + 1);
+    for (let i = 0; i < tableLabelNodes.length; i++) {
+        let col = i + 1;
+        tableLabelNodes[i].onclick = function() {
+            sortedColAsc = col == sortedColIndex ? !sortedColAsc : false;
+            sortTable(col, sortedColAsc);
+        }
     }
     
     flagSummaryTableBody = flagSummaryTable.getElementsByTagName('tbody')[0];
     
-	// some table CSS
+    // some table CSS
     GM_addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .15); }");
     GM_addStyle("#flag-summary-global-stats th { border-bottom: 1px #ddd solid; }");
     
-	// init global flag summary
+    // init global flag summary
     updateGlobalFlagStats();
     
-	// create loading view
+    // create loading view
     let loadingView = document.createElement("div");
     loadingView.id = 'flag-summary-loading';
     loadingView.style.textAlign = 'center';
@@ -173,6 +172,7 @@ function showGlobalFlagSummaryLink() {
     segfsLink.setAttribute('href', '//stackexchange.com/users/current?tab=flags');
     segfsLink.textContent = 'Global Flag Summary';
     segfsLink.style.float = 'right';
+    segfsLink.style.paddingTop = '13px';
     header.insertBefore(segfsLink, header.firstChild);
 }
 
@@ -193,7 +193,7 @@ function updateGlobalFlagStats() {
         <th style="color:#999">` + formatFlagCount(flagGlobalSummaryStats.sumFlagsRetracted) + `</th>
         <th>` + formatFlagCount(flagGlobalSummaryStats.sumFlagsPending) + `</th>
         <th>` + formatFlagCount(flagGlobalSummaryStats.sumFlagsTotal) + `</th>
-        <th>` + formatFlagPercentage(helpfulFraction) + `%</th>
+        <th>` + formatFlagPercentage(helpfulFraction) + `</th>
         <th></th>
     `;
 }
@@ -223,31 +223,62 @@ function parseNetworkAccounts(html) {
     let pageNode = document.createElement('div');
     pageNode.innerHTML = html;
     
+    let accounts = [];
+    
     // iterate all accounts
-    let accountNodes = pageNode.querySelectorAll('.account-container .account-site a');
+    let accountNodes = pageNode.querySelectorAll('.contentWrapper .account-container');
+    for (let i = 0; i < accountNodes.length; ++i) {
+        let accountNode = accountNodes[i];
+        
+        let siteLinkNode = accountNode.querySelector('.account-site a');
+        if (!siteLinkNode) {
+            continue;
+        }
+        if (siteLinkNode.href.indexOf('area51.stackexchange.com/') != -1) {
+            // use discuss.area51.SE instead
+            siteLinkNode.href = siteLinkNode.href.replace('//area51.st', '//discuss.area51.st');
+        }
+        
+        let siteName = siteLinkNode.textContent.trim();
+        let siteUserFlagSummaryUrl = siteLinkNode.href.replace(/users\/(\d+)\/.*$/i, 'users/flag-summary/$1');
+        
+        // get badge count, used for prioritization
+        let badgeCount = 0;
+        let badgeNodes = accountNode.querySelectorAll('.badgecount');
+        for (let j = 0; j < badgeNodes.length; ++j) {
+            badgeCount += parseInt(badgeNodes[j].textContent.trim());
+        }
+        
+        accounts.push({siteName: siteName, flagSummaryUrl: siteUserFlagSummaryUrl, badgeCount: badgeCount});
+        
+        // include meta site
+        if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com/.test(siteLinkNode.href)) {
+            let metaSiteUserFlagSummaryUrl = siteUserFlagSummaryUrl.replace('//', '//meta.');
+            accounts.push({siteName: siteName + " Meta", flagSummaryUrl: metaSiteUserFlagSummaryUrl, badgeCount: badgeCount - 1.5});
+        }
+    }
+    
+    // sort by badge count desc, so we load sites with more badges earlier, since those have higher chances of flag 
+    accounts = accounts.sort(function (a, b) {
+        return b.badgeCount - a.badgeCount;
+    });
+    
+    // load the sites
     let i = -1;
     function loadNextSite() {
         i++;
         
-        if (i >= accountNodes.length) {
+        if (i >= accounts.length) {
             // end of list
             document.getElementById('flag-summary-loading').style.visibility = 'hidden';
             return;
         }
         
-        if (accountNodes[i].href.indexOf('area51.stackexchange.com/') != -1) {
-            // skip this weird abomination
-            loadNextSite();
-            return;
-        }
-        
-        let siteName = accountNodes[i].textContent.trim();
-        let siteUserFlagSummaryUrl = accountNodes[i].href.replace(/users\/(\d+)\/.*$/i, 'users/flag-summary/$1');
-        
-        loadSiteFlagSummary(siteName, siteUserFlagSummaryUrl, loadNextSite);
+        loadSiteFlagSummary(accounts[i].siteName, accounts[i].flagSummaryUrl, loadNextSite);
     };
     
-    // start 3 'threads' in parallel
+    // start 4 'threads' in parallel
+    loadNextSite();
     loadNextSite();
     loadNextSite();
     loadNextSite();
@@ -290,7 +321,7 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     
     // search for flag stats
     let flagCountNodes = pageNode.querySelectorAll('#flag-stat-info-table > tbody > tr > td.col2 > a[href*="status="]');
-    for (var i = 0; i < flagCountNodes.length; i++) {
+    for (let i = 0; i < flagCountNodes.length; i++) {
         let flagType = parseInt(flagCountNodes[i].href.replace(/^.+?\bstatus=(\d+).*$/, '$1'));
         let flagCount = parseInt(previousElementSibling(flagCountNodes[i].parentElement).textContent.replace(/\D/g, ''));
         
@@ -334,12 +365,12 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     // compute helpful percentage
     let realTotal = sumFlagsHelpful + sumFlagsDeclined;
     let helpfulFraction = realTotal == 0 ? 0 : (sumFlagsHelpful / realTotal);
-	
-	// get most recent flag date
+    
+    // get most recent flag date
     let flagHistoryDates = pageNode.querySelectorAll('.user-flag-history .mod-flag .relativetime');
-	let mostRecentflagHistoryDateNode = flagHistoryDates[0];
-	let lastFlagTimestamp = mostRecentflagHistoryDateNode.title;
-	let lastFlagTimeDisplay = mostRecentflagHistoryDateNode.textContent.split('at')[0].trim();
+    let mostRecentflagHistoryDateNode = flagHistoryDates[0];
+    let lastFlagTimestamp = mostRecentflagHistoryDateNode.title;
+    let lastFlagTimeDisplay = mostRecentflagHistoryDateNode.textContent.split('at')[0].trim();
     
     // get site icon
     let siteFaviconURL = pageNode.querySelector('link[rel*="icon"]').href;
@@ -357,12 +388,12 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
         <td style="color:#999">` + formatFlagCount(sumFlagsRetracted) + `</td>
         <td>` + formatFlagCount(sumFlagsPending) + `</td>
         <td>` + formatFlagCount(sumFlagsTotal) + `</td>
-        <td>` + formatFlagPercentage(helpfulFraction) + `%</td>
+        <td>` + (realTotal == 0 ? '-' : formatFlagPercentage(helpfulFraction)) + `</td>
         <td style="color:#999" title="` + lastFlagTimestamp + `">` + lastFlagTimeDisplay + `</td>
     `;
     flagSummaryTableBody.appendChild(siteFlagSummaryTr);
     
-	// keep order
+    // keep order
     sortTable(sortedColIndex, sortedColAsc);
 }
 
@@ -382,7 +413,7 @@ function formatFlagCount(flagCount) {
  * Format helpful flag percentage.
  */
 function formatFlagPercentage(fraction) {
-    return (fraction * 100).toFixed(2);
+    return (fraction * 100).toFixed(2) + '%';
 }
 
 
@@ -402,14 +433,14 @@ function previousElementSibling(node) {
  */ 
 function sortTable(col, asc) {
     sortedColIndex = col;
-    var trs = Array.prototype.slice.call(flagSummaryTableBody.rows, 0);
+    let trs = Array.prototype.slice.call(flagSummaryTableBody.rows, 0);
     asc = -((+asc) || -1);
     if (col == 1) {
         trs = trs.sort(function (a, b) {
             return asc * (a.cells[col].textContent.trim().localeCompare(b.cells[col].textContent.trim()));
         });
     }
-	else if (col == 10) {
+    else if (col == 10) {
         trs = trs.sort(function (a, b) {
             return asc * (a.cells[col].title.localeCompare(b.cells[col].title));
         });
@@ -421,6 +452,6 @@ function sortTable(col, asc) {
                 (parseInt(a.cells[col].textContent.replace(/\D/g, '')) || 0) );
         });
     }
-    for(var i = 0; i < trs.length; ++i) flagSummaryTableBody.appendChild(trs[i]);
+    for(let i = 0; i < trs.length; ++i) flagSummaryTableBody.appendChild(trs[i]);
 }
 
