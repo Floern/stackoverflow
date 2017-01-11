@@ -16,7 +16,7 @@ The table can be sorted asc & desc by clicking on the desired column label.
 
 All per-site flag summary pages contain a link to the global flag summary.
 
-### Installation
+### Install
 
 [view source](SE_global_flag_summary.user.js) | [direct link (install)](SE_global_flag_summary.user.js?raw=true)
 
@@ -24,4 +24,4 @@ All per-site flag summary pages contain a link to the global flag summary.
 
 ### Warning
 
-If you have many (50+) accounts on Stack Exchange, try not to load the flag summary too often in a short timespan, you might get rate limited or soft-banned, because the script makes too many requests.
+If you have many (50+) accounts on Stack Exchange, try not to load the flag summary too often in a short timespan, you might get rate limited or soft-banned because the script makes too many requests.
