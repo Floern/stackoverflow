@@ -181,8 +181,7 @@ function showGlobalFlagSummaryLink() {
  * Update global flag summary in header.
  */
 function updateGlobalFlagStats() {
-    let realTotal = flagGlobalSummaryStats.sumFlagsTotal - flagGlobalSummaryStats.sumFlagsPending - 
-        flagGlobalSummaryStats.sumFlagsRetracted - flagGlobalSummaryStats.sumFlagsExpired;
+    let realTotal = flagGlobalSummaryStats.sumFlagsHelpful + flagGlobalSummaryStats.sumFlagsDeclined;
     let helpfulFraction = realTotal == 0 ? 0 : (flagGlobalSummaryStats.sumFlagsHelpful / realTotal);
     
     document.getElementById('flag-summary-global-stats').innerHTML = `
@@ -333,7 +332,7 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     updateGlobalFlagStats();
     
     // compute helpful percentage
-    let realTotal = sumFlagsTotal - sumFlagsPending - sumFlagsRetracted - sumFlagsExpired;
+    let realTotal = sumFlagsHelpful + sumFlagsDeclined;
     let helpfulFraction = realTotal == 0 ? 0 : (sumFlagsHelpful / realTotal);
 	
 	// get most recent flag date
