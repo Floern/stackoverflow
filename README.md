@@ -4,4 +4,4 @@
 
 [Stack Exchange Global Flag Summary](userscripts#stack-exchange-global-flag-summary)
 
-<sub>Licenced under [MIT Licence](LICENCE)</sub>
+<sub>Licensed under [MIT Licence](LICENCE)</sub>
