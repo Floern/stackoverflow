@@ -193,7 +193,7 @@ function updateGlobalFlagStats() {
         <th style="color:#999">` + formatFlagCount(flagGlobalSummaryStats.sumFlagsRetracted) + `</th>
         <th>` + formatFlagCount(flagGlobalSummaryStats.sumFlagsPending) + `</th>
         <th>` + formatFlagCount(flagGlobalSummaryStats.sumFlagsTotal) + `</th>
-        <th>` + formatFlagPercentage(helpfulFraction) + `</th>
+        <th>` + (realTotal == 0 ? '' : formatFlagPercentage(helpfulFraction)) + `</th>
         <th></th>
     `;
 }
@@ -249,25 +249,24 @@ function parseNetworkAccounts(html) {
             badgeCount += parseInt(badgeNodes[j].textContent.trim());
         }
         
-        accounts.push({siteName: siteName, flagSummaryUrl: siteUserFlagSummaryUrl, badgeCount: badgeCount});
+        accounts.push({siteName: siteName, flagSummaryUrl: siteUserFlagSummaryUrl, loadPriority: badgeCount});
         
         // include meta site
         if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com/.test(siteLinkNode.href)) {
             let metaSiteUserFlagSummaryUrl = siteUserFlagSummaryUrl.replace('//', '//meta.');
-            accounts.push({siteName: siteName + " Meta", flagSummaryUrl: metaSiteUserFlagSummaryUrl, badgeCount: badgeCount - 1.5});
+            accounts.push({siteName: siteName + " Meta", flagSummaryUrl: metaSiteUserFlagSummaryUrl, loadPriority: badgeCount - 1.5});
         }
     }
     
     // sort by badge count desc, so we load sites with more badges earlier, since those have higher chances of flag 
     accounts = accounts.sort(function (a, b) {
-        return b.badgeCount - a.badgeCount;
+        return b.loadPriority - a.loadPriority;
     });
     
     // load the sites
     let i = -1;
     function loadNextSite() {
         i++;
-        
         if (i >= accounts.length) {
             // end of list
             document.getElementById('flag-summary-loading').style.visibility = 'hidden';
@@ -297,6 +296,7 @@ function loadSiteFlagSummary(siteName, siteUserFlagSummaryUrl, finishedCallback)
             parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, response.response);
         },
         onerror: function(response) {
+            console.error('loadSiteFlagSummary: ' + siteUserFlagSummaryUrl);
             console.error('loadSiteFlagSummary: ' + JSON.stringify(response));
             finishedCallback();
         }
@@ -370,7 +370,7 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     let flagHistoryDates = pageNode.querySelectorAll('.user-flag-history .mod-flag .relativetime');
     let mostRecentflagHistoryDateNode = flagHistoryDates[0];
     let lastFlagTimestamp = mostRecentflagHistoryDateNode.title;
-    let lastFlagTimeDisplay = mostRecentflagHistoryDateNode.textContent.split('at')[0].trim();
+    let lastFlagTimeDisplay = formatTimeRelative(lastFlagTimestamp);
     
     // get site icon
     let siteFaviconURL = pageNode.querySelector('link[rel*="icon"]').href;
@@ -414,6 +414,36 @@ function formatFlagCount(flagCount) {
  */
 function formatFlagPercentage(fraction) {
     return (fraction * 100).toFixed(2) + '%';
+}
+
+
+function formatTimeRelative(e) {
+    if (null != e && 20 == e.length) {
+        e = e.substr(0, 10) + "T" + e.substr(11, 10);
+        let date = new Date(e),
+            dsecs = Math.floor(((new Date).getTime() - date.getTime()) / 1e3),
+            ddays = Math.floor(dsecs / 86400);
+        if (0 <= ddays && ddays < 7) {
+            if (dsecs < 2) return 'just now';
+            if (dsecs < 60) return dsecs + ' secs ago';
+            if (dsecs < 120) return '1 min ago';
+            let dmins = Math.floor(dsecs / 60);
+            if (dmins < 60) return dmins + ' mins ago';
+            if (dmins < 120) return '1 hour ago';
+            let dhrs = Math.floor(dmins / 60);
+            if (dhrs < 18) return dhrs + ' hours ago';
+            if (dhrs < 48) return 'yesterday';
+            else return ddays + ' days ago';
+        }
+        else {
+            let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return months[date.getMonth()] + ' ' + date.getDate() + 
+                (date.getFullYear() != (new Date).getFullYear() ? " '" + date.getFullYear().substring(2, 2) : '');
+        }
+    }
+    else {
+        return e;
+    }
 }
 
 
