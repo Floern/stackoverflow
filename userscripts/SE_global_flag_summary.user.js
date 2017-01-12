@@ -24,7 +24,7 @@
 // @run-at        document-end
 // ==/UserScript==
 
-let flagSummaryTable, flagSummaryTableBody;
+let flagSummaryTable, flagSummaryTableBody, errorView;
 
 let sortedColIndex = 2;
 let sortedColAsc = false;
@@ -146,6 +146,10 @@ let flagGlobalSummaryStats = {
     // init global flag summary
     updateGlobalFlagStats();
     
+    // prepare error view
+    errorView = document.createElement('div');
+    container.appendChild(errorView);
+    
     // create loading view
     let loadingView = document.createElement("div");
     loadingView.id = 'flag-summary-loading';
@@ -203,14 +207,16 @@ function updateGlobalFlagStats() {
  * Load the network account list.
  */
 function loadAccountList() {
+    let accountListUrl = '//stackexchange.com/users/current?tab=accounts';
     GM_xmlhttpRequest({
         method: 'GET',
-        url: '//stackexchange.com/users/current?tab=accounts',
+        url: accountListUrl,
         onload: function(response) {
             parseNetworkAccounts(response.response);
         },
         onerror: function(response) {
             console.error('loadAccountList: ' + JSON.stringify(response));
+            showLoadingError(accountListUrl, response.status);
         }
     });
 }
@@ -250,18 +256,24 @@ function parseNetworkAccounts(html) {
         }
         
         accounts.push({siteName: siteName, flagSummaryUrl: siteUserFlagSummaryUrl, loadPriority: badgeCount});
-        
-        // include meta site
-        if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com/.test(siteLinkNode.href)) {
-            let metaSiteUserFlagSummaryUrl = siteUserFlagSummaryUrl.replace('//', '//meta.');
-            accounts.push({siteName: siteName + " Meta", flagSummaryUrl: metaSiteUserFlagSummaryUrl, loadPriority: badgeCount - 1.5});
-        }
     }
     
-    // sort by badge count desc, so we load sites with more badges earlier, since those have higher chances of flag 
+    // sort by badge count desc, so we load sites with more badges earlier, since those have higher chances having our flags
     accounts = accounts.sort(function (a, b) {
         return b.loadPriority - a.loadPriority;
     });
+    
+    // include top meta sites, the more accounts the less metas, because rate limit...
+    let maxMetaSites = Math.max(10, 80 - accounts.length);
+    for (let i = 0; i < accounts.length && maxMetaSites > 0; ++i) {
+        if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com\//.test(accounts[i].flagSummaryUrl)) {
+            let metaSiteUserFlagSummaryUrl = accounts[i].flagSummaryUrl.replace('//', '//meta.');
+            accounts.splice(i + 1, 0, {siteName: accounts[i].siteName + " Meta", 
+                                   flagSummaryUrl: metaSiteUserFlagSummaryUrl, loadPriority: 0});
+            i++;
+            maxMetaSites--;
+        }
+    }
     
     // load the sites
     let i = -1;
@@ -276,8 +288,7 @@ function parseNetworkAccounts(html) {
         loadSiteFlagSummary(accounts[i].siteName, accounts[i].flagSummaryUrl, loadNextSite);
     };
     
-    // start 4 'threads' in parallel
-    loadNextSite();
+    // start 3 'threads' in parallel
     loadNextSite();
     loadNextSite();
     loadNextSite();
@@ -288,17 +299,24 @@ function parseNetworkAccounts(html) {
  * Load the flag summary of the specified site.
  */
 function loadSiteFlagSummary(siteName, siteUserFlagSummaryUrl, finishedCallback) {
+    console.log('loading ' + siteName);
     GM_xmlhttpRequest({
         method: 'GET',
         url: siteUserFlagSummaryUrl,
         onload: function(response) {
             finishedCallback();
-            parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, response.response);
+            if (response.status < 400) {
+                parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, response.response);
+            }
+            else {
+                showLoadingError(siteUserFlagSummaryUrl, response.status);
+            }
         },
         onerror: function(response) {
             console.error('loadSiteFlagSummary: ' + siteUserFlagSummaryUrl);
             console.error('loadSiteFlagSummary: ' + JSON.stringify(response));
             finishedCallback();
+            showLoadingError(siteUserFlagSummaryUrl, response.status);
         }
     });
 }
@@ -388,7 +406,7 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
         <td style="color:#999">` + formatFlagCount(sumFlagsRetracted) + `</td>
         <td>` + formatFlagCount(sumFlagsPending) + `</td>
         <td>` + formatFlagCount(sumFlagsTotal) + `</td>
-        <td>` + (realTotal == 0 ? '-' : formatFlagPercentage(helpfulFraction)) + `</td>
+        <td>` + (realTotal == 0 ? '–' : formatFlagPercentage(helpfulFraction)) + `</td>
         <td style="color:#999" title="` + lastFlagTimestamp + `">` + lastFlagTimeDisplay + `</td>
     `;
     flagSummaryTableBody.appendChild(siteFlagSummaryTr);
@@ -423,7 +441,7 @@ function formatTimeRelative(e) {
         let date = new Date(e),
             dsecs = Math.floor(((new Date).getTime() - date.getTime()) / 1e3),
             ddays = Math.floor(dsecs / 86400);
-        if (0 <= ddays && ddays < 7) {
+        if (0 <= ddays && ddays < 7 || ddays == 42) {
             if (dsecs < 2) return 'just now';
             if (dsecs < 60) return dsecs + ' secs ago';
             if (dsecs < 120) return '1 min ago';
@@ -438,7 +456,7 @@ function formatTimeRelative(e) {
         else {
             let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             return months[date.getMonth()] + ' ' + date.getDate() + 
-                (date.getFullYear() != (new Date).getFullYear() ? " '" + date.getFullYear().substring(2, 2) : '');
+                (date.getFullYear() != (new Date).getFullYear() ? " '" + date.getFullYear() % 100 : '');
         }
     }
     else {
@@ -455,6 +473,16 @@ function previousElementSibling(node) {
         node = node.previousSibling;
     } while (node && node.nodeType !== 1);
     return node;
+}
+
+
+/**
+ * Show an error.
+ */
+function showLoadingError(url, statuscode) {
+    let errorMsg = document.createElement("div");
+    errorMsg.innerHTML = 'Failed to load <a href="' + url + '">' + url + '</a> with status ' + statuscode + '';
+    errorView.appendChild(errorMsg);
 }
 
 
