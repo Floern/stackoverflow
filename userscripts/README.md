@@ -20,8 +20,19 @@ All per-site flag summary pages contain a link to the global flag summary.
 
 [view source](SE_global_flag_summary.user.js) | [direct link (install)](SE_global_flag_summary.user.js?raw=true)
 
-<sup>Tested with Greasemonkey on Firefox</sup>
-
 ### Warning
 
 If you have many (50+) accounts on Stack Exchange, try not to load the flag summary too often in a short timespan, you might get rate limited or soft-banned because the script makes too many requests.
+
+
+## Flag Tracker
+
+When you flag a post, this userscript will let you monitor that post and notify you in case the post gets edited.
+
+If a post you flagged has been edited, you will be pinged by [@GenericBot](http://stackoverflow.com/users/7481043/generic-bot) in the [SoBotics chat room](http://chat.stackoverflow.com/rooms/111347/sobotics). Make sure you're pingable in this chat room to receive the notifications.
+
+[![flag tracker report screenshot](../resources/screens/ftgenreport.png?raw=true)](../resources/screens/ftgenreport.png?raw=true)
+
+### Install
+
+[view source](flagtracker.user.js) | [direct link (install)](flagtracker.user.js?raw=true)
