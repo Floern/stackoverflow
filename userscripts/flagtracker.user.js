@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Flag Tracker
 // @namespace    https://so.floern.com/
-// @version      0.1
+// @version      0.2
 // @description  Tracks flagged posts on Stack Overflow.
 // @author       Floern
 // @include      /^https?:\/\/(www\.)?stackoverflow\.com\/.*/
@@ -23,11 +23,12 @@ function computeContentHash(postContent) {
 
 
 function sendTrackRequest(answerId, feedback) {
-  if ($('.so-header .my-profile .gravatar-wrapper-24').length == 0) {
-	alert('Flag Tracker: Could not find username.');
-  }
   if ($('#answer-'+answerId+' .post-text').length == 0) {
-	alert('Flag Tracker: Could not find username.');
+    // post is not an answer
+    return;
+  }
+  if ($('.so-header .my-profile .gravatar-wrapper-24').length == 0) {
+    alert('Flag Tracker: Could not find username.');
   }
 	
   var flaggername = $('.so-header .my-profile .gravatar-wrapper-24').attr('title');
