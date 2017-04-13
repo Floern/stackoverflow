@@ -242,7 +242,7 @@ function parseNetworkAccounts(html) {
         }
         if (siteLinkNode.href.indexOf('area51.stackexchange.com/') != -1) {
             // use discuss.area51.SE instead
-            siteLinkNode.href = siteLinkNode.href.replace('//area51.st', '//discuss.area51.st');
+            siteLinkNode.href = siteLinkNode.href.replace('//area51.st', '//discuss.area51.st').replace('https://', 'http://');
         }
         
         let siteName = siteLinkNode.textContent.trim();
@@ -267,7 +267,11 @@ function parseNetworkAccounts(html) {
     let maxMetaSites = Math.max(10, 80 - accounts.length);
     for (let i = 0; i < accounts.length && maxMetaSites > 0; ++i) {
         if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com\//.test(accounts[i].flagSummaryUrl)) {
-            let metaSiteUserFlagSummaryUrl = accounts[i].flagSummaryUrl.replace('//', '//meta.');
+            let metaSiteUserFlagSummaryUrl;
+            if (/\.stackexchange\.com\//.test(accounts[i].flagSummaryUrl))
+                metaSiteUserFlagSummaryUrl = accounts[i].flagSummaryUrl.replace('.stackexchange.com', '.meta.stackexchange.com');
+            else
+                metaSiteUserFlagSummaryUrl = accounts[i].flagSummaryUrl.replace('//', '//meta.');
             accounts.splice(i + 1, 0, {siteName: accounts[i].siteName + " Meta", 
                                    flagSummaryUrl: metaSiteUserFlagSummaryUrl, loadPriority: 0});
             i++;
@@ -285,7 +289,10 @@ function parseNetworkAccounts(html) {
             return;
         }
         
-        loadSiteFlagSummary(accounts[i].siteName, accounts[i].flagSummaryUrl, loadNextSite);
+		let account = accounts[i];
+        setTimeout(function() {
+            loadSiteFlagSummary(account.siteName, account.flagSummaryUrl, loadNextSite);
+        }, i < 25 ? 0 : 500);
     };
     
     // start 3 'threads' in parallel
