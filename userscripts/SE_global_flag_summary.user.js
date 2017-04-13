@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       0.6
+// @version       0.7
 // @description   Stack Exchange network wide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
@@ -142,9 +142,9 @@ let flagGlobalSummaryStats = {
     // some table CSS
     GM_addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .10); }");
     GM_addStyle("#flag-summary-global-stats th { border-bottom: 1px #ddd solid; }");
-	GM_addStyle("#flag-summary-table tbody tr { counter-increment: siteNumber; }");
-	GM_addStyle("#flag-summary-table tbody tr td:first-child::before { content: counter(siteNumber); width: 14px; " +
-				"margin-right: 10px; color: #bbb; font-size: 10px; display: inline-block; text-align: right; margin-left: -24px; }");
+    GM_addStyle("#flag-summary-table tbody tr { counter-increment: siteNumber; }");
+    GM_addStyle("#flag-summary-table tbody tr td:first-child::before { content: counter(siteNumber); width: 14px; " +
+                "margin-right: 10px; color: #bbb; font-size: 10px; display: inline-block; text-align: right; margin-left: -24px; }");
     
     // init global flag summary
     updateGlobalFlagStats();
@@ -292,7 +292,7 @@ function parseNetworkAccounts(html) {
             return;
         }
         
-		let account = accounts[i];
+        let account = accounts[i];
         setTimeout(function() {
             loadSiteFlagSummary(account.siteName, account.flagSummaryUrl, loadNextSite);
         }, i < 25 ? 0 : 500);
