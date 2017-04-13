@@ -140,8 +140,11 @@ let flagGlobalSummaryStats = {
     flagSummaryTableBody = flagSummaryTable.getElementsByTagName('tbody')[0];
     
     // some table CSS
-    GM_addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .15); }");
+    GM_addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .10); }");
     GM_addStyle("#flag-summary-global-stats th { border-bottom: 1px #ddd solid; }");
+	GM_addStyle("#flag-summary-table tbody tr { counter-increment: siteNumber; }");
+	GM_addStyle("#flag-summary-table tbody tr td:first-child::before { content: counter(siteNumber); width: 14px; " +
+				"margin-right: 10px; color: #bbb; font-size: 10px; display: inline-block; text-align: right; margin-left: -24px; }");
     
     // init global flag summary
     updateGlobalFlagStats();
