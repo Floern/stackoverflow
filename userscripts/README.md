@@ -16,13 +16,14 @@ The table can be sorted asc & desc by clicking on the desired column label.
 
 All per-site flag summary pages contain a link to the global flag summary.
 
+### Warning
+
+If you have many (50+) accounts on Stack Exchange, try not to load the flag summary too often in a short timespan, you might get rate limited or soft-banned because the script makes too many requests.
+
 ### Install
 
 [view source](SE_global_flag_summary.user.js) | [direct link (install)](SE_global_flag_summary.user.js?raw=true)
 
-### Warning
-
-If you have many (50+) accounts on Stack Exchange, try not to load the flag summary too often in a short timespan, you might get rate limited or soft-banned because the script makes too many requests.
 
 
 ## Flag Tracker
@@ -36,3 +37,20 @@ If a post you flagged has been edited, you will be pinged by [@GenericBot](http:
 ### Install
 
 [view source](flagtracker.user.js) | [direct link (install)](flagtracker.user.js?raw=true)
+
+
+
+## Auto Review
+
+Automatically skips through the *First Posts* and *Late Answers* review queue on Stack Overflow and completes a review task of a post that you have already handled outside of the queue.
+
+This is meant to be used in combination with the *New Answers to Old Questions* tool or any other tool that allows you to review posts outside of the normal review queues.
+
+### Warning
+
+This userscript is experimental. Use at your own risk.
+
+### Install
+
+[view source](SO_auto_review.user.js) | [direct link (install)](SO_auto_review.user.js?raw=true)
+
