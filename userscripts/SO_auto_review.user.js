@@ -62,6 +62,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
 				(
 					!$('.review-content .reviewable-post').length || 
 					infoText.indexOf('Thank you for reviewing') >= 0 || 
+					infoText.indexOf('vote limit reached') >= 0 || 
 					infoText.indexOf('Review completed') >= 0 || 
 					reviewActionBar.find(':input[value="Next"]').length
 				);
@@ -81,7 +82,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
 			}
 			return;
 		}
-		else if (infoText.indexOf('Thank you for reviewing') >= 0) {
+		else if (infoText.indexOf('Thank you for reviewing') >= 0 || infoText.indexOf('vote limit reached') >= 0) {
 			// review limit reached
 			setPlaying(false);
 			return;
