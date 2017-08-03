@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       0.7
+// @version       0.8
 // @description   Stack Exchange network wide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
@@ -38,7 +38,6 @@ let flagGlobalSummaryStats = {
     sumFlagsPending: 0,
     sumFlagsHelpful: 0
 };
-
 
 // init
 (function () {
@@ -157,13 +156,13 @@ let flagGlobalSummaryStats = {
     let loadingView = document.createElement("div");
     loadingView.id = 'flag-summary-loading';
     loadingView.style.textAlign = 'center';
-    loadingView.innerHTML = '<img src="/content/img/progress-dots.gif" alt="Loading..." />';
+    loadingView.innerHTML = '<img src="/content/img/progress-dots.gif" alt="Loading..." /><br>' + 
+                            '<span id="flag-summary-loading-progress" style="color:#bbb;font-size:10px;"></span>';
     container.appendChild(loadingView);
     
     // load data
     loadAccountList();
 })();
-
 
 /**
  * Add a link to the flag summary page.
@@ -182,7 +181,6 @@ function showGlobalFlagSummaryLink() {
     segfsLink.style.paddingTop = '13px';
     header.insertBefore(segfsLink, header.firstChild);
 }
-
 
 /**
  * Update global flag summary in header.
@@ -205,7 +203,6 @@ function updateGlobalFlagStats() {
     `;
 }
 
-
 /**
  * Load the network account list.
  */
@@ -223,7 +220,6 @@ function loadAccountList() {
         }
     });
 }
-
 
 /**
  * Parse the network account list.
@@ -244,8 +240,8 @@ function parseNetworkAccounts(html) {
             continue;
         }
         if (siteLinkNode.href.indexOf('area51.stackexchange.com/') != -1) {
-            // use discuss.area51.SE instead
-            siteLinkNode.href = siteLinkNode.href.replace('//area51.st', '//discuss.area51.st').replace('https://', 'http://');
+            // use area51.meta.SE instead
+            siteLinkNode.href = siteLinkNode.href.replace('//area51.st', '//area51.meta.st');
         }
         
         let siteName = siteLinkNode.textContent.trim();
@@ -284,17 +280,25 @@ function parseNetworkAccounts(html) {
     
     // load the sites
     let i = -1;
+    let loaded = 0;
     function loadNextSite() {
         i++;
         if (i >= accounts.length) {
             // end of list
-            document.getElementById('flag-summary-loading').style.visibility = 'hidden';
             return;
         }
         
         let account = accounts[i];
         setTimeout(function() {
-            loadSiteFlagSummary(account.siteName, account.flagSummaryUrl, loadNextSite);
+            loadSiteFlagSummary(account.siteName, account.flagSummaryUrl, function() {
+                loaded++;
+                document.getElementById('flag-summary-loading-progress').textContent = loaded + " / " + accounts.length;
+                if (loaded >= accounts.length) {
+                    // end of list
+                    document.getElementById('flag-summary-loading').style.visibility = 'hidden';
+                }
+                loadNextSite();
+            });
         }, i < 25 ? 0 : 500);
     };
     
@@ -303,7 +307,6 @@ function parseNetworkAccounts(html) {
     loadNextSite();
     loadNextSite();
 }
-
 
 /**
  * Load the flag summary of the specified site.
@@ -331,9 +334,8 @@ function loadSiteFlagSummary(siteName, siteUserFlagSummaryUrl, finishedCallback)
     });
 }
 
-
 /**
- * Parses the flag summary site and extracts the stats.
+ * Parse the flag summary site and extract the stats.
  */
 function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     let pageNode = document.createElement('div');
@@ -425,7 +427,6 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     sortTable(sortedColIndex, sortedColAsc);
 }
 
-
 /**
  * Format flag count, empty if 0.
  */
@@ -436,7 +437,6 @@ function formatFlagCount(flagCount) {
         return flagCount;
 }
 
-
 /**
  * Format helpful flag percentage.
  */
@@ -444,7 +444,9 @@ function formatFlagPercentage(fraction) {
     return (fraction * 100).toFixed(2) + '%';
 }
 
-
+/**
+ * Format relative time.
+ */
 function formatTimeRelative(e) {
     if (null != e && 20 == e.length) {
         e = e.substr(0, 10) + "T" + e.substr(11, 10);
@@ -474,7 +476,6 @@ function formatTimeRelative(e) {
     }
 }
 
-
 /**
  * Find the previous non-text sibling node.
  */
@@ -485,7 +486,6 @@ function previousElementSibling(node) {
     return node;
 }
 
-
 /**
  * Show an error.
  */
@@ -495,9 +495,8 @@ function showLoadingError(url, statuscode) {
     errorView.appendChild(errorMsg);
 }
 
-
 /**
- * Sort the table.
+ * Sort the table by column index `col` and bool `asc`.
  */ 
 function sortTable(col, asc) {
     sortedColIndex = col;
@@ -515,11 +514,13 @@ function sortTable(col, asc) {
     }
     else {
         trs = trs.sort(function (a, b) {
-            return asc
-                * ((parseInt(b.cells[col].textContent.replace(/\D/g, '')) || 0) - 
-                (parseInt(a.cells[col].textContent.replace(/\D/g, '')) || 0) );
+            let va = parseInt(a.cells[col].textContent.replace(/\D/g, '')) || 0;
+            let vb = parseInt(b.cells[col].textContent.replace(/\D/g, '')) || 0;
+            if (va != vb) // primary order
+                return asc * (vb - va);
+            else // secondary order
+                return a.cells[1].textContent.trim().localeCompare(b.cells[1].textContent.trim());
         });
     }
-    for(let i = 0; i < trs.length; ++i) flagSummaryTableBody.appendChild(trs[i]);
+    for (let i = 0; i < trs.length; ++i) flagSummaryTableBody.appendChild(trs[i]);
 }
-
