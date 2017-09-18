@@ -1,24 +1,26 @@
 // ==UserScript==
-// @name         Flag Tracker
-// @namespace    https://so.floern.com/
-// @version      0.2
-// @description  Tracks flagged posts on Stack Overflow.
-// @author       Floern
-// @include      /^https?:\/\/(www\.)?stackoverflow\.com\/.*/
-// @connect      so.floern.com
-// @grant        GM_xmlhttpRequest
-// @require      http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js
+// @name          Flag Tracker
+// @namespace     https://so.floern.com/
+// @version       0.2.1
+// @description   Tracks flagged posts on Stack Overflow.
+// @author        Floern
+// @include       /^https?:\/\/(www\.)?stackoverflow\.com\/.*/
+// @connect       so.floern.com
+// @grant         GM_xmlhttpRequest
+// @require       https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js
+// @updateURL     https://raw.githubusercontent.com/Floern/stackoverflow/master/userscripts/flagtracker.user.js
+// @downloadURL   https://raw.githubusercontent.com/Floern/stackoverflow/master/userscripts/flagtracker.user.js
 // ==/UserScript==
 
 function computeContentHash(postContent) {
-	if (!postContent)
-		return 0;
-	var hash = 0;
-    for (var i = 0; i < postContent.length; ++i) {
-		hash = ((hash << 5) - hash) + postContent.charCodeAt(i);
-		hash = hash & hash;
-	}
-	return hash;
+  if (!postContent)
+    return 0;
+  var hash = 0;
+  for (var i = 0; i < postContent.length; ++i) {
+    hash = ((hash << 5) - hash) + postContent.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return hash;
 }
 
 
@@ -27,20 +29,20 @@ function sendTrackRequest(answerId, feedback) {
     // post is not an answer
     return;
   }
-  if ($('.so-header .my-profile .gravatar-wrapper-24').length == 0) {
+  if ($('.top-bar .my-profile .gravatar-wrapper-24').length == 0) {
     alert('Flag Tracker: Could not find username.');
   }
-	
-  var flaggername = $('.so-header .my-profile .gravatar-wrapper-24').attr('title');
+    
+  var flaggername = $('.top-bar .my-profile .gravatar-wrapper-24').attr('title');
   var contentHash = computeContentHash($('#answer-'+answerId+' .post-text').html().trim());
   GM_xmlhttpRequest({
     method: 'POST', 
     url: 'https://so.floern.com/api/trackpost.php',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-	data: 'key=Cm45BSrt51FR3ju'
-		+'&postId='+answerId
-		+'&contentHash='+contentHash
-		+'&flagger='+encodeURIComponent(flaggername),
+    data: 'key=Cm45BSrt51FR3ju'
+        +'&postId='+answerId
+        +'&contentHash='+contentHash
+        +'&flagger='+encodeURIComponent(flaggername),
     onload: function (response) {
       if (response.status !== 200) {
         alert('Error while settiing up tracking: status ' + response.status);
