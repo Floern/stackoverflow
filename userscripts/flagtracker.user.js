@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Flag Tracker
 // @namespace     https://so.floern.com/
-// @version       0.2.1
+// @version       0.2.2
 // @description   Tracks flagged posts on Stack Overflow.
 // @author        Floern
 // @include       /^https?:\/\/(www\.)?stackoverflow\.com\/.*/
@@ -45,13 +45,13 @@ function sendTrackRequest(answerId, feedback) {
         +'&flagger='+encodeURIComponent(flaggername),
     onload: function (response) {
       if (response.status !== 200) {
-        alert('Error while settiing up tracking: status ' + response.status);
+        alert('Flag Tracker Error: Status ' + response.status);
         return;
       }
       $('[data-answerid="' + answerId + '"] a.flag-tracker-link').addClass('flag-tracked').html('tracked');
     },
     onerror: function (response) {
-      alert('Error while settiing up tracking: ' + response.responseText);
+      alert('Flag Tracker Error: ' + response.responseText);
     }
   });
 }
