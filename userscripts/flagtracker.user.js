@@ -6,6 +6,8 @@
 // @author        Floern
 // @include       /^https?:\/\/(www\.)?stackoverflow\.com\/.*/
 // @connect       so.floern.com
+// @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
+// @grant         GM.xmlHttpRequest
 // @grant         GM_xmlhttpRequest
 // @require       https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js
 // @updateURL     https://raw.githubusercontent.com/Floern/stackoverflow/master/userscripts/flagtracker.user.js
@@ -35,7 +37,7 @@ function sendTrackRequest(answerId, feedback) {
     
   var flaggername = $('.top-bar .my-profile .gravatar-wrapper-24').attr('title');
   var contentHash = computeContentHash($('#answer-'+answerId+' .post-text').html().trim());
-  GM_xmlhttpRequest({
+  GM.xmlHttpRequest({
     method: 'POST', 
     url: 'https://so.floern.com/api/trackpost.php',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
