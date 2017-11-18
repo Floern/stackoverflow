@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       0.8.1
+// @version       1.0
 // @description   Stack Exchange network wide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
@@ -19,7 +19,10 @@
 // @connect       askubuntu.com
 // @connect       stackapps.com
 // @connect       mathoverflow.net
+// @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
+// @grant         GM.xmlHttpRequest
 // @grant         GM_xmlhttpRequest
+// @grant         GM.addStyle
 // @grant         GM_addStyle
 // @run-at        document-end
 // @updateURL     https://raw.githubusercontent.com/Floern/stackoverflow/master/userscripts/SE_global_flag_summary.meta.js

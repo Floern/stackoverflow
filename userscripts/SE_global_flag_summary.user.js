@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       0.8.1
+// @version       1.0
 // @description   Stack Exchange network wide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
@@ -19,7 +19,10 @@
 // @connect       askubuntu.com
 // @connect       stackapps.com
 // @connect       mathoverflow.net
+// @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
+// @grant         GM.xmlHttpRequest
 // @grant         GM_xmlhttpRequest
+// @grant         GM.addStyle
 // @grant         GM_addStyle
 // @run-at        document-end
 // @updateURL     https://raw.githubusercontent.com/Floern/stackoverflow/master/userscripts/SE_global_flag_summary.meta.js
@@ -141,10 +144,10 @@ let flagGlobalSummaryStats = {
     flagSummaryTableBody = flagSummaryTable.getElementsByTagName('tbody')[0];
     
     // some table CSS
-    GM_addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .10); }");
-    GM_addStyle("#flag-summary-global-stats th { border-bottom: 1px #ddd solid; }");
-    GM_addStyle("#flag-summary-table tbody tr { counter-increment: siteNumber; }");
-    GM_addStyle("#flag-summary-table tbody tr td:first-child::before { content: counter(siteNumber); width: 14px; " +
+    GM.addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .10); }");
+    GM.addStyle("#flag-summary-global-stats th { border-bottom: 1px #ddd solid; }");
+    GM.addStyle("#flag-summary-table tbody tr { counter-increment: siteNumber; }");
+    GM.addStyle("#flag-summary-table tbody tr td:first-child::before { content: counter(siteNumber); width: 14px; " +
                 "margin-right: 10px; color: #bbb; font-size: 10px; display: inline-block; text-align: right; margin-left: -24px; }");
     
     // init global flag summary
@@ -210,7 +213,7 @@ function updateGlobalFlagStats() {
  */
 function loadAccountList() {
     let accountListUrl = '//stackexchange.com/users/current?tab=accounts';
-    GM_xmlhttpRequest({
+    GM.xmlHttpRequest({
         method: 'GET',
         url: accountListUrl,
         onload: function(response) {
@@ -247,7 +250,7 @@ function parseNetworkAccounts(html) {
         }
         
         let siteName = siteLinkNode.textContent.trim();
-        let siteUserFlagSummaryUrl = siteLinkNode.href.replace(/users\/(\d+)\/.*$/i, 'users/flag-summary/$1');
+        let siteFlagSummaryUrl = siteLinkNode.href.replace(/users\/(\d+)\/.*$/i, 'users/flag-summary/$1');
         
         // get badge count, used for prioritization
         let badgeCount = 0;
@@ -256,29 +259,23 @@ function parseNetworkAccounts(html) {
             badgeCount += parseInt(badgeNodes[j].textContent.trim());
         }
         
-        accounts.push({siteName: siteName, flagSummaryUrl: siteUserFlagSummaryUrl, loadPriority: badgeCount});
+        accounts.push({siteName: siteName, flagSummaryUrl: siteFlagSummaryUrl, loadPriority: badgeCount});
+        
+        // add meta site
+        if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com\//.test(siteFlagSummaryUrl)) {
+            let metaSiteFlagSummaryUrl;
+            if (/\.stackexchange\.com\//.test(siteFlagSummaryUrl))
+                metaSiteFlagSummaryUrl = siteFlagSummaryUrl.replace('.stackexchange.com', '.meta.stackexchange.com');
+            else
+                metaSiteFlagSummaryUrl = siteFlagSummaryUrl.replace('//', '//meta.');
+            accounts.push({siteName: siteName + " Meta", flagSummaryUrl: metaSiteFlagSummaryUrl, loadPriority: badgeCount - 1.5});
+        }
     }
     
     // sort by badge count desc, so we load sites with more badges earlier, since those have higher chances having our flags
     accounts = accounts.sort(function (a, b) {
         return b.loadPriority - a.loadPriority;
     });
-    
-    // include top meta sites, the more accounts the less metas, because rate limit...
-    let maxMetaSites = Math.max(10, 80 - accounts.length);
-    for (let i = 0; i < accounts.length && maxMetaSites > 0; ++i) {
-        if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com\//.test(accounts[i].flagSummaryUrl)) {
-            let metaSiteUserFlagSummaryUrl;
-            if (/\.stackexchange\.com\//.test(accounts[i].flagSummaryUrl))
-                metaSiteUserFlagSummaryUrl = accounts[i].flagSummaryUrl.replace('.stackexchange.com', '.meta.stackexchange.com');
-            else
-                metaSiteUserFlagSummaryUrl = accounts[i].flagSummaryUrl.replace('//', '//meta.');
-            accounts.splice(i + 1, 0, {siteName: accounts[i].siteName + " Meta", 
-                                   flagSummaryUrl: metaSiteUserFlagSummaryUrl, loadPriority: 0});
-            i++;
-            maxMetaSites--;
-        }
-    }
     
     // load the sites
     let i = -1;
@@ -291,6 +288,7 @@ function parseNetworkAccounts(html) {
         }
         
         let account = accounts[i];
+        let delay = i < 25 ? 0 : (i < 180 ? 500 : 1000);
         setTimeout(function() {
             loadSiteFlagSummary(account.siteName, account.flagSummaryUrl, function() {
                 loaded++;
@@ -301,7 +299,7 @@ function parseNetworkAccounts(html) {
                 }
                 loadNextSite();
             });
-        }, i < 25 ? 0 : 500);
+        }, delay);
     };
     
     // start 3 'threads' in parallel
@@ -313,25 +311,25 @@ function parseNetworkAccounts(html) {
 /**
  * Load the flag summary of the specified site.
  */
-function loadSiteFlagSummary(siteName, siteUserFlagSummaryUrl, finishedCallback) {
+function loadSiteFlagSummary(siteName, siteFlagSummaryUrl, finishedCallback) {
     console.log('loading ' + siteName);
-    GM_xmlhttpRequest({
+    GM.xmlHttpRequest({
         method: 'GET',
-        url: siteUserFlagSummaryUrl,
+        url: siteFlagSummaryUrl,
         onload: function(response) {
             finishedCallback();
             if (response.status < 400) {
-                parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, response.response);
+                parseSiteFlagSummary(siteName, siteFlagSummaryUrl, response.response);
             }
             else {
-                showLoadingError(siteUserFlagSummaryUrl, response.status);
+                showLoadingError(siteFlagSummaryUrl, response.status);
             }
         },
         onerror: function(response) {
-            console.error('loadSiteFlagSummary: ' + siteUserFlagSummaryUrl);
+            console.error('loadSiteFlagSummary: ' + siteFlagSummaryUrl);
             console.error('loadSiteFlagSummary: ' + JSON.stringify(response));
             finishedCallback();
-            showLoadingError(siteUserFlagSummaryUrl, response.status);
+            showLoadingError(siteFlagSummaryUrl, response.status);
         }
     });
 }
@@ -339,7 +337,7 @@ function loadSiteFlagSummary(siteName, siteUserFlagSummaryUrl, finishedCallback)
 /**
  * Parse the flag summary site and extract the stats.
  */
-function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
+function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
     let pageNode = document.createElement('div');
     pageNode.innerHTML = html;
     
@@ -412,7 +410,7 @@ function parseSiteFlagSummary(siteName, siteUserFlagSummaryUrl, html) {
     siteFlagSummaryTr.innerHTML = `
         <td style="text-align:left;width:24px"><img src="` + siteFaviconURL + `" 
             style="width:16px;height:16px;vertical-align:middle" /></td>
-        <td style="text-align:left"><a href="` + siteUserFlagSummaryUrl + `">` + siteName + `</a></td>
+        <td style="text-align:left"><a href="` + siteFlagSummaryUrl + `">` + siteName + `</a></td>
         <td style="color:#090">` + formatFlagCount(sumFlagsHelpful) + `</td>
         <td style="color:#f00">` + formatFlagCount(sumFlagsDeclined) + `</td>
         <td style="color:#f80">` + formatFlagCount(sumFlagsDisputed) + `</td>
