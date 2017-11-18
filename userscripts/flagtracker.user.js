@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Flag Tracker
 // @namespace     https://so.floern.com/
-// @version       0.2.2
+// @version       0.3
 // @description   Tracks flagged posts on Stack Overflow.
 // @author        Floern
 // @include       /^https?:\/\/(www\.)?stackoverflow\.com\/.*/
