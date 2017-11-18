@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       1.0
+// @version       1.0.1
 // @description   Stack Exchange network wide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
@@ -264,9 +264,11 @@ function parseNetworkAccounts(html) {
         // add meta site
         if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com\//.test(siteFlagSummaryUrl)) {
             let metaSiteFlagSummaryUrl;
-            if (/\.stackexchange\.com\//.test(siteFlagSummaryUrl))
+            if (/\.stackexchange\.com\//.test(siteFlagSummaryUrl)) // SE 2.0 sites
                 metaSiteFlagSummaryUrl = siteFlagSummaryUrl.replace('.stackexchange.com', '.meta.stackexchange.com');
-            else
+            else if (/\/\/[a-z]{2}\.stackoverflow\.com\//.test(siteFlagSummaryUrl)) // localized SO sites
+                metaSiteFlagSummaryUrl = siteFlagSummaryUrl.replace('.stackoverflow.com', '.meta.stackoverflow.com');
+            else // SE 1.0 sites
                 metaSiteFlagSummaryUrl = siteFlagSummaryUrl.replace('//', '//meta.');
             accounts.push({siteName: siteName + " Meta", flagSummaryUrl: metaSiteFlagSummaryUrl, loadPriority: badgeCount - 1.5});
         }
@@ -288,7 +290,7 @@ function parseNetworkAccounts(html) {
         }
         
         let account = accounts[i];
-        let delay = i < 25 ? 0 : (i < 180 ? 500 : 1000);
+        let delay = i < 25 ? 0 : (i < 160 ? 500 : 1500);
         setTimeout(function() {
             loadSiteFlagSummary(account.siteName, account.flagSummaryUrl, function() {
                 loaded++;
