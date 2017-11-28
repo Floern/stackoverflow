@@ -50,18 +50,18 @@ let flagGlobalSummaryStats = {
         showGlobalFlagSummaryLink();
         return;
     }
-    
+
     if (!window.location.href.match(/:\/\/stackexchange\.com\/users\/\d+/i)) {
         return;
     }
-    
+
     let navigation = document.querySelector('#content .contentWrapper .subheader');
     if (!navigation) {
         return;
     }
-    
+
     let tabbar = navigation.querySelector('.tabs');
-    
+
     // verify that we are in the profile of the logged in user
     let tabs = tabbar.getElementsByTagName('a');
     let loggedIn = false;
@@ -74,31 +74,31 @@ let flagGlobalSummaryStats = {
     if (!loggedIn) {
         return;
     }
-    
+
     // add navigation tab for flags
     let flagTab = document.createElement('a');
     flagTab.setAttribute('href', '?tab=flags');
     flagTab.textContent = 'flags';
     tabs[4].parentNode.insertBefore(flagTab, tabs[4]);
-    
+
     if (!window.location.href.match(/:\/\/stackexchange\.com\/users\/\d+\/.+?\?tab=flags/i)) {
         return;
     }
-    
+
     // unselect default tab
     let selectedTab = navigation.querySelector('.youarehere');
     selectedTab.className = '';
-    
+
     // set selected tab to flags
     flagTab.className = 'youarehere';
-    
+
     // remove default content
     while (navigation.nextSibling) {
         navigation.parentNode.removeChild(navigation.nextSibling);
     }
-    
+
     document.querySelector('title').textContent = 'Flag Summary - Stack Exchange';
-    
+
     let container = document.createElement('div');
     navigation.parentNode.appendChild(container);
 
@@ -130,7 +130,7 @@ let flagGlobalSummaryStats = {
         </tbody>
     `;
     container.appendChild(flagSummaryTable);
-    
+
     // make columns sortable
     let tableLabelNodes = flagSummaryTable.querySelectorAll('#flag-summary-heading-labels th');
     for (let i = 0; i < tableLabelNodes.length; i++) {
@@ -138,33 +138,33 @@ let flagGlobalSummaryStats = {
         tableLabelNodes[i].onclick = function() {
             sortedColAsc = col == sortedColIndex ? !sortedColAsc : false;
             sortTable(col, sortedColAsc);
-        }
+        };
     }
-    
+
     flagSummaryTableBody = flagSummaryTable.getElementsByTagName('tbody')[0];
-    
+
     // some table CSS
     GM.addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .10); }");
     GM.addStyle("#flag-summary-global-stats th { border-bottom: 1px #ddd solid; }");
     GM.addStyle("#flag-summary-table tbody tr { counter-increment: siteNumber; }");
     GM.addStyle("#flag-summary-table tbody tr td:first-child::before { content: counter(siteNumber); width: 14px; " +
                 "margin-right: 10px; color: #bbb; font-size: 10px; display: inline-block; text-align: right; margin-left: -24px; }");
-    
+
     // init global flag summary
     updateGlobalFlagStats();
-    
+
     // prepare error view
     errorView = document.createElement('div');
     container.appendChild(errorView);
-    
+
     // create loading view
     let loadingView = document.createElement("div");
     loadingView.id = 'flag-summary-loading';
     loadingView.style.textAlign = 'center';
-    loadingView.innerHTML = '<img src="/content/img/progress-dots.gif" alt="Loading..." /><br>' + 
+    loadingView.innerHTML = '<img src="/content/img/progress-dots.gif" alt="Loading..." /><br>' +
                             '<span id="flag-summary-loading-progress" style="color:#bbb;font-size:10px;"></span>';
     container.appendChild(loadingView);
-    
+
     // load data
     loadAccountList();
 })();
@@ -177,7 +177,7 @@ function showGlobalFlagSummaryLink() {
     if (!header) {
         return;
     }
-    
+
     // add link to header
     let segfsLink = document.createElement('a');
     segfsLink.setAttribute('href', '//stackexchange.com/users/current?tab=flags');
@@ -193,7 +193,7 @@ function showGlobalFlagSummaryLink() {
 function updateGlobalFlagStats() {
     let realTotal = flagGlobalSummaryStats.sumFlagsHelpful + flagGlobalSummaryStats.sumFlagsDeclined;
     let helpfulFraction = realTotal == 0 ? 0 : (flagGlobalSummaryStats.sumFlagsHelpful / realTotal);
-    
+
     document.getElementById('flag-summary-global-stats').innerHTML = `
         <th colspan="2"></th>
         <th style="color:#090">` + formatFlagCount(flagGlobalSummaryStats.sumFlagsHelpful) + `</th>
@@ -232,14 +232,14 @@ function loadAccountList() {
 function parseNetworkAccounts(html) {
     let pageNode = document.createElement('div');
     pageNode.innerHTML = html;
-    
+
     let accounts = [];
-    
+
     // iterate all accounts
     let accountNodes = pageNode.querySelectorAll('.contentWrapper .account-container');
     for (let i = 0; i < accountNodes.length; ++i) {
         let accountNode = accountNodes[i];
-        
+
         let siteLinkNode = accountNode.querySelector('.account-site a');
         if (!siteLinkNode) {
             continue;
@@ -248,19 +248,19 @@ function parseNetworkAccounts(html) {
             // use area51.meta.SE instead
             siteLinkNode.href = siteLinkNode.href.replace('//area51.st', '//area51.meta.st');
         }
-        
+
         let siteName = siteLinkNode.textContent.trim();
         let siteFlagSummaryUrl = siteLinkNode.href.replace(/users\/(\d+)\/.*$/i, 'users/flag-summary/$1');
-        
+
         // get badge count, used for prioritization
         let badgeCount = 0;
         let badgeNodes = accountNode.querySelectorAll('.badgecount');
         for (let j = 0; j < badgeNodes.length; ++j) {
             badgeCount += parseInt(badgeNodes[j].textContent.trim());
         }
-        
+
         accounts.push({siteName: siteName, flagSummaryUrl: siteFlagSummaryUrl, loadPriority: badgeCount});
-        
+
         // add meta site
         if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com\//.test(siteFlagSummaryUrl)) {
             let metaSiteFlagSummaryUrl;
@@ -273,12 +273,12 @@ function parseNetworkAccounts(html) {
             accounts.push({siteName: siteName + " Meta", flagSummaryUrl: metaSiteFlagSummaryUrl, loadPriority: badgeCount - 1.5});
         }
     }
-    
+
     // sort by badge count desc, so we load sites with more badges earlier, since those have higher chances having our flags
     accounts = accounts.sort(function (a, b) {
         return b.loadPriority - a.loadPriority;
     });
-    
+
     // load the sites
     let i = -1;
     let loaded = 0;
@@ -288,7 +288,7 @@ function parseNetworkAccounts(html) {
             // end of list
             return;
         }
-        
+
         let account = accounts[i];
         let delay = i < 25 ? 0 : (i < 160 ? 500 : 1500);
         setTimeout(function() {
@@ -303,7 +303,7 @@ function parseNetworkAccounts(html) {
             });
         }, delay);
     };
-    
+
     // start 3 'threads' in parallel
     loadNextSite();
     loadNextSite();
@@ -342,7 +342,7 @@ function loadSiteFlagSummary(siteName, siteFlagSummaryUrl, finishedCallback) {
 function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
     let pageNode = document.createElement('div');
     pageNode.innerHTML = html;
-    
+
     let sumFlagsTotal = 0;
     let sumFlagsDeclined = 0;
     let sumFlagsDisputed = 0;
@@ -350,15 +350,15 @@ function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
     let sumFlagsExpired = 0;
     let sumFlagsPending = 0;
     let sumFlagsHelpful = 0;
-    
+
     // search for flag stats
     let flagCountNodes = pageNode.querySelectorAll('#flag-stat-info-table > tbody > tr > td.col2 > a[href*="status="]');
     for (let i = 0; i < flagCountNodes.length; i++) {
         let flagType = parseInt(flagCountNodes[i].href.replace(/^.+?\bstatus=(\d+).*$/, '$1'));
         let flagCount = parseInt(previousElementSibling(flagCountNodes[i].parentElement).textContent.replace(/\D/g, ''));
-        
+
         sumFlagsTotal += flagCount;
-        
+
         switch (flagType) {
             case 1: // pending
                 sumFlagsPending += flagCount; break;
@@ -377,12 +377,12 @@ function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
                 break;
         }
     }
-    
+
     if (sumFlagsTotal == 0) {
         // skip site with no flags
         return;
     }
-    
+
     // update global summary
     flagGlobalSummaryStats.sumFlagsTotal += sumFlagsTotal;
     flagGlobalSummaryStats.sumFlagsDeclined += sumFlagsDeclined;
@@ -391,26 +391,26 @@ function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
     flagGlobalSummaryStats.sumFlagsExpired += sumFlagsExpired;
     flagGlobalSummaryStats.sumFlagsPending += sumFlagsPending;
     flagGlobalSummaryStats.sumFlagsHelpful += sumFlagsHelpful;
-    
+
     updateGlobalFlagStats();
-    
+
     // compute helpful percentage
     let realTotal = sumFlagsHelpful + sumFlagsDeclined;
     let helpfulFraction = realTotal == 0 ? 0 : (sumFlagsHelpful / realTotal);
-    
+
     // get most recent flag date
     let flagHistoryDates = pageNode.querySelectorAll('.user-flag-history .mod-flag .relativetime');
     let mostRecentflagHistoryDateNode = flagHistoryDates[0];
     let lastFlagTimestamp = mostRecentflagHistoryDateNode.title;
     let lastFlagTimeDisplay = formatTimeRelative(lastFlagTimestamp);
-    
+
     // get site icon
     let siteFaviconURL = pageNode.querySelector('link[rel*="icon"]').href;
-    
+
     // create table row for this site
     let siteFlagSummaryTr = document.createElement('tr');
     siteFlagSummaryTr.innerHTML = `
-        <td style="text-align:left;width:24px"><img src="` + siteFaviconURL + `" 
+        <td style="text-align:left;width:24px"><img src="` + siteFaviconURL + `"
             style="width:16px;height:16px;vertical-align:middle" /></td>
         <td style="text-align:left"><a href="` + siteFlagSummaryUrl + `">` + siteName + `</a></td>
         <td style="color:#090">` + formatFlagCount(sumFlagsHelpful) + `</td>
@@ -424,7 +424,7 @@ function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
         <td style="color:#999" title="` + lastFlagTimestamp + `">` + lastFlagTimeDisplay + `</td>
     `;
     flagSummaryTableBody.appendChild(siteFlagSummaryTr);
-    
+
     // keep order
     sortTable(sortedColIndex, sortedColAsc);
 }
@@ -453,7 +453,7 @@ function formatTimeRelative(e) {
     if (null != e && 20 == e.length) {
         e = e.substr(0, 10) + "T" + e.substr(11, 10);
         let date = new Date(e),
-            dsecs = Math.floor(((new Date).getTime() - date.getTime()) / 1e3),
+            dsecs = Math.floor((Date.now() - date.getTime()) / 1e3),
             ddays = Math.floor(dsecs / 86400);
         if (0 <= ddays && ddays < 7 || ddays == 42) {
             if (dsecs < 2) return 'just now';
@@ -469,8 +469,8 @@ function formatTimeRelative(e) {
         }
         else {
             let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return months[date.getMonth()] + ' ' + date.getDate() + 
-                (date.getFullYear() != (new Date).getFullYear() ? " '" + date.getFullYear() % 100 : '');
+            return months[date.getMonth()] + ' ' + date.getDate() +
+                (date.getFullYear() != new Date().getFullYear() ? " '" + date.getFullYear() % 100 : '');
         }
     }
     else {
@@ -499,7 +499,7 @@ function showLoadingError(url, statuscode) {
 
 /**
  * Sort the table by column index `col` and bool `asc`.
- */ 
+ */
 function sortTable(col, asc) {
     sortedColIndex = col;
     let trs = Array.prototype.slice.call(flagSummaryTableBody.rows, 0);
