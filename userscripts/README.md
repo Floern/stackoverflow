@@ -24,7 +24,17 @@ If you have many (50+) accounts on Stack Exchange, try not to load the flag summ
 
 [view source](SE_global_flag_summary.user.js) | [direct link (install)](SE_global_flag_summary.user.js?raw=true)
 
+---
 
+## Helpful Flag Percentage
+
+Fork of [Overall Percentage of Helpful Flags](https://meta.stackoverflow.com/q/310881/559745).
+
+### Install
+
+[view source](helpful_flag_percentage.user.js) | [direct link (install)](helpful_flag_percentage.user.js?raw=true)
+
+---
 
 ## Flag Tracker
 
@@ -38,7 +48,7 @@ If a post you flagged has been edited, you will be pinged by [@GenericBot](http:
 
 [view source](flagtracker.user.js) | [direct link (install)](flagtracker.user.js?raw=true)
 
-
+---
 
 ## Auto Review
 
