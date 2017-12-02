@@ -1,5 +1,13 @@
 # Userscripts
 
+<sup>Quick install:</sup>  
+[<sup>Stack Exchange Global Flag Summary</sup>](SE_global_flag_summary.user.js?raw=true)  
+[<sup>Helpful Flag Percentage</sup>](helpful_flag_percentage.user.js?raw=true)  
+[<sup>Flag Tracker</sup>](flagtracker.user.js?raw=true)  
+[<sup>Auto Review</sup>](SO_auto_review.user.js?raw=true)
+
+---
+
 ## Stack Exchange Global Flag Summary
 
 Provides a network wide flag summary for all Stack Exchange sites.
@@ -27,6 +35,10 @@ If you have many (50+) accounts on Stack Exchange, try not to load the flag summ
 ---
 
 ## Helpful Flag Percentage
+
+Shows the percentage of helpful flags on your flag summary.
+
+[![helpful flag percentage screenshot](../resources/screens/hfp.png?raw=true)](../resources/screens/hfp.png?raw=true)
 
 Fork of [Overall Percentage of Helpful Flags](https://meta.stackoverflow.com/q/310881/559745).
 
