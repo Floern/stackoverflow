@@ -1,10 +1,16 @@
 // ==UserScript==
-// @name          Flag Tracker
+// @name          Stack Exchange Flag Tracker
 // @namespace     https://so.floern.com/
-// @version       0.3.1
-// @description   Tracks flagged posts on Stack Overflow.
+// @version       1.0
+// @description   Tracks flagged posts on Stack Exchange.
 // @author        Floern
-// @include       *://stackoverflow.com/*/*
+// @match         *://*.stackexchange.com/*/*
+// @match         *://*.stackoverflow.com/*/*
+// @match         *://*.superuser.com/*/*
+// @match         *://*.serverfault.com/*/*
+// @match         *://*.askubuntu.com/*/*
+// @match         *://*.stackapps.com/*/*
+// @match         *://*.mathoverflow.net/*/*
 // @connect       so.floern.com
 // @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @require       https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js
@@ -25,9 +31,8 @@ function computeContentHash(postContent) {
     return hash;
 }
 
-function sendTrackRequest(answerId, feedback) {
-    if ($('#answer-'+answerId+' .post-text').length === 0) {
-        // post is not an answer
+function sendTrackRequest(postId, feedback) {
+    if ($('#answer-' + postId + ' .post-text, [data-questionid="' + postId + '"] .post-text').length === 0) {
         return;
     }
     if ($('.top-bar .my-profile .gravatar-wrapper-24').length === 0) {
@@ -35,13 +40,15 @@ function sendTrackRequest(answerId, feedback) {
     }
 
     var flaggername = $('.top-bar .my-profile .gravatar-wrapper-24').attr('title');
-    var contentHash = computeContentHash($('#answer-'+answerId+' .post-text').html().trim());
+	var postContent = $('#answer-' + postId + ' .post-text, [data-questionid="' + postId + '"] .post-text').html().trim();
+    var contentHash = computeContentHash(postContent);
     GM.xmlHttpRequest({
         method: 'POST',
         url: 'https://so.floern.com/api/trackpost.php',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         data: 'key=Cm45BSrt51FR3ju' +
-              '&postId=' + answerId +
+              '&postId=' + postId +
+              '&site=' + window.location.hostname +
               '&contentHash=' + contentHash +
               '&flagger=' + encodeURIComponent(flaggername),
         onload: function (response) {
@@ -49,7 +56,8 @@ function sendTrackRequest(answerId, feedback) {
                 alert('Flag Tracker Error: Status ' + response.status);
                 return;
             }
-            $('[data-answerid="' + answerId + '"] a.flag-tracker-link').addClass('flag-tracked').html('tracked');
+            $('#answer-' + postId + ' a.flag-tracker-link, [data-questionid="' + postId + '"] a.flag-tracker-link')
+                    .addClass('flag-tracked').html('tracked');
         },
         onerror: function (response) {
             alert('Flag Tracker Error: ' + response.responseText);
@@ -88,25 +96,31 @@ const ScriptToInject = function() {
         window.postMessage(JSON.stringify(['postFlagTrack', postId]), "*");
     }
 
-    function handleAnswers(postId) {
+    function handlePosts(postId) {
         var $posts;
-        if(!postId) {
-            $posts = $('.answer .post-menu');
-        } else {
-            $posts = $('[data-answerid="' + postId + '"] .post-menu');
+        if (!postId) {
+            $posts = $('.answer .post-menu, .question .post-menu');
+        }
+        else {
+            $posts = $('[data-answerid="' + postId + '"] .post-menu, [data-questionid="' + postId + '"] .post-menu');
         }
         $posts.each(function() {
             var $this = $(this);
             $this.append($('<span>').attr('class', 'lsep').html('|'));
-            $this.append($('<a>').attr('class', 'flag-tracker-link').attr('title', 'register this post to be tracked').html('track').click(trackFlag));
+            $this.append($('<a>').attr('class', 'flag-tracker-link').attr('title', 'register this post to be tracked')
+                    .html('track').click(trackFlag));
         });
     }
 
     addXHRListener(function(xhr) {
         if (/ajax-load-realtime/.test(xhr.responseURL)) {
-            let matches = /answer" data-answerid="(\d+)/.exec(xhr.responseText);
-            if (matches !== null) {
-                handleAnswers(matches[1]);
+            let matchesA = /answer" data-answerid="(\d+)/.exec(xhr.responseText);
+            if (matchesA !== null) {
+                handlePosts(matchesA[1]);
+            }
+            let matchesQ = /question" data-questionid="(\d+)/.exec(xhr.responseText);
+            if (matchesQ !== null) {
+                handlePosts(matchesQ[1]);
             }
         }
     });
@@ -119,7 +133,7 @@ const ScriptToInject = function() {
     });
 
     $(document).ready(function() {
-        handleAnswers();
+        handlePosts();
     });
 
 };
