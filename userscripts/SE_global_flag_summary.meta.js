@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       1.0.1
-// @description   Stack Exchange network wide flag summary available in your network profile
+// @version       1.1
+// @description   Stack Exchange networkwide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
 // @match         *://*.stackexchange.com/users/flag-summary/*

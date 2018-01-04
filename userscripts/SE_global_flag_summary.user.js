@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       1.0.1
-// @description   Stack Exchange network wide flag summary available in your network profile
+// @version       1.1
+// @description   Stack Exchange networkwide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
 // @match         *://*.stackexchange.com/users/flag-summary/*
@@ -160,10 +160,10 @@ let rateLimited = false;
     container.appendChild(errorView);
 
     // create loading view
-    let loadingView = document.createElement("div");
+    let loadingView = document.createElement('div');
     loadingView.id = 'flag-summary-loading';
     loadingView.style.textAlign = 'center';
-    loadingView.innerHTML = '<img src="/content/img/progress-dots.gif" alt="Loading..." /><br>' +
+    loadingView.innerHTML = '<img id="flag-summary-loading-anim" src="/content/img/progress-dots.gif" alt="Loading..." /><br>' +
                             '<span id="flag-summary-loading-progress" style="color:#bbb;font-size:10px;"></span>';
     container.appendChild(loadingView);
 
@@ -288,29 +288,36 @@ function parseNetworkAccounts(html) {
     let loaded = 0;
     function loadNextSite() {
         i++;
-        if (i >= accounts.length || rateLimited) {
+        if (i >= accounts.length) {
             // end of list
             return;
         }
 
         let account = accounts[i];
-        let delay = i < 25 ? 200 : (i < 160 ? 1111 : 2750);
+        let delay = (i < 25 ? 100 : (i < 160 ? 450 : 1111));
         setTimeout(function() {
+            if (rateLimited) {
+                return;
+            }
             loadSiteFlagSummary(account.siteName, account.flagSummaryUrl, function() {
                 loaded++;
-                document.getElementById('flag-summary-loading-progress').textContent = loaded + " / " + accounts.length;
+                let progressText = document.getElementById('flag-summary-loading-progress');
+                if (rateLimited) {
+                    progressText.textContent = 'aborted (rate limited)';
+                    document.getElementById('flag-summary-loading-anim').style.visibility = 'hidden';
+                }
+                else {
+                    progressText.textContent = loaded + ' / ' + accounts.length;
+                }
                 if (loaded >= accounts.length) {
                     // end of list
                     document.getElementById('flag-summary-loading').style.visibility = 'hidden';
                 }
             });
             loadNextSite();
-        }, delay + Math.random() * 500);
-    };
+        }, delay);
+    }
 
-    // start 3 'threads' in parallel
-    loadNextSite();
-    loadNextSite();
     loadNextSite();
 }
 
@@ -430,10 +437,18 @@ function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
         <td>` + (realTotal == 0 ? '–' : formatFlagPercentage(helpfulFraction)) + `</td>
         <td style="color:#999" title="` + lastFlagTimestamp + `">` + lastFlagTimeDisplay + `</td>
     `;
+
+    let anchorBottom = window.pageYOffset > 9 && (window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2;
+
     flagSummaryTableBody.appendChild(siteFlagSummaryTr);
 
     // keep order
     sortTable(sortedColIndex, sortedColAsc);
+
+    if (anchorBottom) {
+        // keep scroll position at bottom
+        window.scrollTo(window.pageXOffset, document.body.scrollHeight);
+    }
 }
 
 /**
@@ -500,6 +515,7 @@ function previousElementSibling(node) {
  */
 function showLoadingError(url, statuscode, siteName) {
     let errorMsg = document.createElement('div');
+    errorMsg.style.paddingTop = '4px';
     let errorHtml = 'Failed to load <a href="' + url + '">' + (siteName || url) + '</a> ';
     if (statuscode <= 0 && siteName) errorHtml += '(<a href="#" class="segfs-retry">retry</a>)';
     else if (statuscode == 429) errorHtml += '(rate limited)';
@@ -521,16 +537,18 @@ function showLoadingError(url, statuscode, siteName) {
  */
 function sortTable(col, asc) {
     sortedColIndex = col;
-    let trs = Array.prototype.slice.call(flagSummaryTableBody.rows, 0);
+    let trs = [].slice.call(flagSummaryTableBody.rows, 0);
     asc = -((+asc) || -1);
     if (col == 1) {
+        // site name
         trs = trs.sort(function (a, b) {
             return asc * (a.cells[col].textContent.trim().localeCompare(b.cells[col].textContent.trim()));
         });
     }
     else if (col == 10) {
+        // date
         trs = trs.sort(function (a, b) {
-            return asc * (a.cells[col].title.localeCompare(b.cells[col].title));
+            return asc * (b.cells[col].title.localeCompare(a.cells[col].title));
         });
     }
     else {
