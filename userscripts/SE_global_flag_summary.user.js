@@ -44,6 +44,8 @@ let flagGlobalSummaryStats = {
     sumFlagsHelpful: 0
 };
 
+let rateLimited = false;
+
 // init
 (function () {
     if (window.location.href.match(/\/users\/flag-summary\/\d+/i)) {
@@ -165,6 +167,8 @@ let flagGlobalSummaryStats = {
                             '<span id="flag-summary-loading-progress" style="color:#bbb;font-size:10px;"></span>';
     container.appendChild(loadingView);
 
+    rateLimited = false;
+
     // load data
     loadAccountList();
 })();
@@ -221,7 +225,7 @@ function loadAccountList() {
         },
         onerror: function(response) {
             console.error('loadAccountList: ' + JSON.stringify(response));
-            showLoadingError(accountListUrl, response.status);
+            showLoadingError(accountListUrl, response.status, null);
         }
     });
 }
@@ -284,13 +288,13 @@ function parseNetworkAccounts(html) {
     let loaded = 0;
     function loadNextSite() {
         i++;
-        if (i >= accounts.length) {
+        if (i >= accounts.length || rateLimited) {
             // end of list
             return;
         }
 
         let account = accounts[i];
-        let delay = i < 25 ? 0 : (i < 160 ? 500 : 1500);
+        let delay = i < 25 ? 200 : (i < 160 ? 1111 : 2750);
         setTimeout(function() {
             loadSiteFlagSummary(account.siteName, account.flagSummaryUrl, function() {
                 loaded++;
@@ -299,9 +303,9 @@ function parseNetworkAccounts(html) {
                     // end of list
                     document.getElementById('flag-summary-loading').style.visibility = 'hidden';
                 }
-                loadNextSite();
             });
-        }, delay);
+            loadNextSite();
+        }, delay + Math.random() * 500);
     };
 
     // start 3 'threads' in parallel
@@ -319,19 +323,22 @@ function loadSiteFlagSummary(siteName, siteFlagSummaryUrl, finishedCallback) {
         method: 'GET',
         url: siteFlagSummaryUrl,
         onload: function(response) {
-            finishedCallback();
             if (response.status < 400) {
                 parseSiteFlagSummary(siteName, siteFlagSummaryUrl, response.response);
             }
             else {
-                showLoadingError(siteFlagSummaryUrl, response.status);
+                showLoadingError(siteFlagSummaryUrl, response.status, siteName);
+                if (response.status == 429) {
+                    rateLimited = true;
+                }
             }
+            finishedCallback();
         },
         onerror: function(response) {
             console.error('loadSiteFlagSummary: ' + siteFlagSummaryUrl);
             console.error('loadSiteFlagSummary: ' + JSON.stringify(response));
+            showLoadingError(siteFlagSummaryUrl, response.status, siteName);
             finishedCallback();
-            showLoadingError(siteFlagSummaryUrl, response.status);
         }
     });
 }
@@ -491,9 +498,21 @@ function previousElementSibling(node) {
 /**
  * Show an error.
  */
-function showLoadingError(url, statuscode) {
-    let errorMsg = document.createElement("div");
-    errorMsg.innerHTML = 'Failed to load <a href="' + url + '">' + url + '</a> with status ' + statuscode + '';
+function showLoadingError(url, statuscode, siteName) {
+    let errorMsg = document.createElement('div');
+    let errorHtml = 'Failed to load <a href="' + url + '">' + (siteName || url) + '</a> ';
+    if (statuscode <= 0 && siteName) errorHtml += '(<a href="#" class="segfs-retry">retry</a>)';
+    else if (statuscode == 429) errorHtml += '(rate limited)';
+    else errorHtml += 'with status ' + statuscode;
+    errorMsg.innerHTML = errorHtml;
+    let retrybtn = errorMsg.getElementsByClassName('segfs-retry');
+    if (retrybtn.length > 0) {
+        retrybtn[0].onclick = function(e) {
+            loadSiteFlagSummary(siteName, url, function(){});
+            errorMsg.outerHTML = '';
+            return false;
+        };
+    }
     errorView.appendChild(errorMsg);
 }
 
