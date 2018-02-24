@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Flag Tracker
 // @namespace     https://so.floern.com/
-// @version       1.0
+// @version       1.1
 // @description   Tracks flagged posts on Stack Exchange.
 // @author        Floern
 // @match         *://*.stackexchange.com/*/*
@@ -11,6 +11,7 @@
 // @match         *://*.askubuntu.com/*/*
 // @match         *://*.stackapps.com/*/*
 // @match         *://*.mathoverflow.net/*/*
+// @match         *://chat.stackoverflow.com/rooms/111347/*
 // @connect       so.floern.com
 // @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @require       https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js
@@ -40,7 +41,7 @@ function sendTrackRequest(postId, feedback) {
     }
 
     var flaggername = $('.top-bar .my-profile .gravatar-wrapper-24').attr('title');
-	var postContent = $('#answer-' + postId + ' .post-text, [data-questionid="' + postId + '"] .post-text').html().trim();
+    var postContent = $('#answer-' + postId + ' .post-text, [data-questionid="' + postId + '"] .post-text').html().trim();
     var contentHash = computeContentHash(postContent);
     GM.xmlHttpRequest({
         method: 'POST',
@@ -75,8 +76,6 @@ function sendRequest(event) {
         sendTrackRequest(messageJSON[1]);
     }
 }
-
-window.addEventListener('message', sendRequest, false);
 
 const ScriptToInject = function() {
     function addXHRListener(callback) {
@@ -135,11 +134,93 @@ const ScriptToInject = function() {
     $(document).ready(function() {
         handlePosts();
     });
-
 };
+
+window.addEventListener('message', sendRequest, false);
 
 const ScriptToInjectNode = document.createElement('script');
 document.body.appendChild(ScriptToInjectNode);
 
 const ScriptToInjectContent = document.createTextNode('(' + ScriptToInject.toString() + ')()');
 ScriptToInjectNode.appendChild(ScriptToInjectContent);
+
+function ChatControls() {
+    if ($('#active-user .avatar img').length === 0) {
+        return;
+    }
+    var flaggername = $('#active-user .avatar img').attr('title').replace(' ', '');
+    console.log(flaggername);
+
+    const ready = CHAT.Hub.roomReady;
+    CHAT.Hub.roomReady = {
+        fire: function(...args) {
+            ready.fire(...args);
+
+            function eventHandler(event) {
+                if (event.room_id !== CHAT.CURRENT_ROOM_ID ||
+                   event.event_type !== 1 ||
+                   event.user_id !== 7481043) return;
+
+                const content = document.createElement('div');
+                content.innerHTML = event.content;
+
+                if (!/A [\w\s]+ post has been edited:/i.test(content.textContent)) return;
+                if (content.textContent.indexOf(' @' + flaggername) === -1) return;
+
+                function send(message) {
+                    $.ajax({
+                        'type': 'POST',
+                        'url': `/chats/${CHAT.CURRENT_ROOM_ID}/messages/new`,
+                        'data': fkey({text: message}),
+                        'dataType': 'json'
+                    });
+                }
+
+                function clickHandler(message) {
+                    return function(event) {
+                        event.preventDefault();
+                        send(message);
+                    };
+                }
+
+                function createLink(message) {
+                    const node = document.createElement('a');
+                    node.href = "#";
+                    node.textContent = message;
+                    node.addEventListener('click', clickHandler(`:${event.message_id} ${message}`), false);
+                    return node;
+                }
+
+                setTimeout(() => {
+                    const message = document.querySelector(`#message-${event.message_id} .content`);
+                    const wrap = document.createElement('span');
+                    wrap.appendChild(document.createTextNode(' ['));
+                    wrap.appendChild(createLink('untrack'));
+                    wrap.appendChild(document.createTextNode('] '));
+                    message.appendChild(wrap);
+                }, 0);
+            }
+
+            function handleLoadedEvents(handler) {
+                [...(document.querySelectorAll('.user-container') || [])].forEach(container => {
+                    [...(container.querySelectorAll('.message') || [])].forEach(message => handler({
+                        room_id: CHAT.CURRENT_ROOM_ID,
+                        event_type: 1,
+                        user_id: +(container.className.match(/user-(\d+)/) || [])[1],
+                        message_id: +(message.id.match(/message-(\d+)/) || [])[1],
+                        content: message.querySelector('.content').innerHTML
+                    }));
+                });
+            }
+
+            CHAT.addEventHandlerHook(eventHandler);
+            handleLoadedEvents(eventHandler);
+        }
+    };
+}
+
+if (window.location.href.match(/\/chat\.stack\w+\.com\/rooms\/\d+/i)) {
+    const script = document.createElement('script');
+    script.textContent = `(${ ChatControls.toString() })();`;
+    document.body.appendChild(script);
+}
