@@ -5,7 +5,7 @@ Please don't add _"thanks"_ as answers. They don't actually provide an answer to
 Please don't add _Me too!_ as answers, it doesn't actually provide an answer to the question. If you have a different but related question then [ask](/questions/ask) it (reference this one if it will help provide context). If you're interested in this specific question, you can [upvote](/help/privileges/vote-up) it or leave a [comment](/help/privileges/comment) once you have enough [reputation](/help/whats-reputation).
 
 ###[A] New Question
-This post isn't an actual attempt at answering the question. Please note [$SITENAME$ doesn't work like a discussion forum](/about), it is a Q&A site where every post is either a question or an answer to a question. You may ask this as a new question by clicking the [Ask Question button](/questions/ask).
+Please note [$SITENAME$ doesn't work like a discussion forum](/about), it is a Q&A site where one asks a questions or posts an answer in the answer section. If you have a new question please ask it by clicking the [Ask Question button](/questions/ask).
 
 ###[A] Link Only
 A link to a solution is welcome, but please ensure your answer is useful without it: [add context around the link](//meta.stackexchange.com/a/8259/164356) so your fellow users will have some idea what it is and why it’s there, then quote the most relevant part of the page you're linking to in case the target page is unavailable. [Answers that are little more than a link may be deleted.](/help/deleted-answers)
