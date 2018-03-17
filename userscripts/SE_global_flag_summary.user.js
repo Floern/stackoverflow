@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       1.1
+// @version       1.1.1
 // @description   Stack Exchange networkwide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
@@ -112,8 +112,8 @@ let rateLimited = false;
     flagSummaryTable.style.borderCollapse = 'separate';
     flagSummaryTable.style.borderSpacing = '0 5px';
     flagSummaryTable.innerHTML = `
-        <thead>
-            <tr id="flag-summary-heading-labels" style="cursor:pointer">
+        <thead style="position:sticky;top:0;box-shadow:#fdfdfd 0px 64px 0px inset,#fdfdfd -32px 0px 0px;">
+            <tr id="flag-summary-heading-labels">
                 <th style="text-align:left;width:160px" colspan="2">Site</th>
                 <th>helpful</th>
                 <th>declined</th>
@@ -146,8 +146,9 @@ let rateLimited = false;
     flagSummaryTableBody = flagSummaryTable.getElementsByTagName('tbody')[0];
 
     // some table CSS
+    GM.addStyle("#flag-summary-heading-labels th { padding-top: 6px; cursor: pointer; }");
+    GM.addStyle("#flag-summary-global-stats th { padding-bottom: 4px; border-bottom: 1px #ddd solid; }");
     GM.addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .10); }");
-    GM.addStyle("#flag-summary-global-stats th { border-bottom: 1px #ddd solid; }");
     GM.addStyle("#flag-summary-table tbody tr { counter-increment: siteNumber; }");
     GM.addStyle("#flag-summary-table tbody tr td:first-child::before { content: counter(siteNumber); width: 14px; " +
                 "margin-right: 10px; color: #bbb; font-size: 10px; display: inline-block; text-align: right; margin-left: -24px; }");
