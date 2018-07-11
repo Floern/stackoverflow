@@ -162,15 +162,18 @@ UVORK5CYII=`;
     flagSummaryTableBody = flagSummaryTable.getElementsByTagName('tbody')[0];
 
     // some table CSS
-    GM.addStyle("#flag-summary-heading-labels th { padding-top: 6px; cursor: pointer; }");
-    GM.addStyle("#flag-summary-global-stats th { padding-bottom: 4px; border-bottom: 1px #ddd solid; }");
-    GM.addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .10); }");
-    GM.addStyle("#flag-summary-table tbody tr { counter-increment: siteNumber; }");
-    GM.addStyle("#flag-summary-table tbody tr td:first-child::before { content: counter(siteNumber); width: 14px; " +
-                "margin-right: 10px; color: #bbb; font-size: 10px; display: inline-block; text-align: right; margin-left: -24px; }");
+    GM.addStyle("#flag-summary-heading-labels th { padding-top:6px; cursor:pointer; }");
+    GM.addStyle("#flag-summary-global-stats th { padding-bottom:4px; border-bottom:1px #ddd solid; }");
+    GM.addStyle("#flag-summary-table tbody tr:hover { background:rgba(127,127,127,.10); }");
+    GM.addStyle("#flag-summary-table tbody tr { counter-increment:siteNumber; }");
+    GM.addStyle("#flag-summary-table tbody tr td:first-child::before { content:counter(siteNumber); width:14px; " +
+                "margin-right: 10px; color: #bbb; font-size:10px; display:inline-block; text-align:right; margin-left:-24px; }");
     GM.addStyle("#flag-summary-table tbody tr td:last-child { width: 0px; position: relative; }");
-    GM.addStyle("#flag-summary-table .reloadbutton { cursor: pointer; width: 24px; position: absolute; top: 0px; left: 0px; display: none; }");
-    GM.addStyle("#flag-summary-table tbody tr:hover .reloadbutton { display: block; }");
+    GM.addStyle("#flag-summary-table .reloadbutton { cursor:pointer; width:24px; position:absolute; top:0; left:0; " +
+                "z-index:1; display:none; }");
+    GM.addStyle("#flag-summary-table tbody tr:hover .reloadbutton { display:block; }");
+    GM.addStyle("#flag-summary-table tbody tr td:last-child::after { content:''; width:24px; display:inline-block; " +
+                "position:absolute; height:100%; top:0;}");
 
     // init global flag summary
     updateGlobalFlagStats();
