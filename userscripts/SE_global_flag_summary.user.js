@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       1.1.1
+// @version       1.2
 // @description   Stack Exchange networkwide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
@@ -45,6 +45,21 @@ let flagGlobalSummaryStats = {
 };
 
 let rateLimited = false;
+
+let reloadIcon = `iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADrUlEQVRYR+1WS2gTURRN/OFfURER/10IUtqmS
+WYmEQz+EFEXohVxIaLgStHMZJLUFmapuBBRKlbnk4+/xi5c+NkIipui1i4FUXShLiqiiPihfuK5yTOdycwkqdaK4IFDMvPuuXPfffe9
++zwjgYCohzklO5U9jjw42TjFi+oDIXp2Bnv1e4goxvhwLFUXkPRgsDW7WpD1Zk46s9i/t3MsM7EAAeghScsLktYXkjKz2euhQYh2TRB
+i2k5e0m7A0Xs4/E5OB6l+FyT1rSDp3Vxc2xpRbo1hUg8vG7mfdoKo3fMoyig2VB0tudxopG8XhC+tH6xM2D8RYvoO+pgQ1W4OvldfRR
+SlFFxFNCrGdDi5bnY8VCJb3chMT+m51gC4eHZeSNQemp0NB2sKoEHKTMJ69zo5ICK93zCzO3xMOxmUU+18TD8Kx9fx7oOTvZk1BYBCO
+uUkBgdQhCf8ifQCZmqBP9E5DUG1IeXvHLQFVg2Ai54RaIZ2sfqak9WVzKwETtJXCbHU5kAivZuLGwfxAQX2hl1fZNUAkMZrDsKPCGAF
+M7EAdZKkLeigcSQC6G9pyY1mciv4A8Yip9ljSVqZiR35vBfj+xC4Q9bsxKH0mCntgJNouQAB9VNRMhNXIP17sPZfCxoEg1r5gi08gJr
+4SCwcUkg/L+s9TGIHKv+qLQCsJxuuirCszqUs+sXzs5YpuclEv9I5kYj/42jtXdNPoJly+7NTzaTDiA3/x78HXETm86K+tqH9gq9RyT
+URG1ov1bNhO5rbUnXU34nNyXMbfYcym4Lx1DYUIip8kMtdTsJyYAd1OBT1E9d2jL59ulzgwmdU7UzmiAh2AG29ci0CcN9VQwiAzoeng
+aS2hElt4CW93UkXko3VzMQOdDbVUeRCzOZ5MJmeyeQl4DxZg7EBB/u+irchrHemXFRgsf0eD8Qz4QblUn1j4uKin+cEzmIvkxfAx9Qt
+0NjacuGUjOvrmJkzXAMAyQHSmg7I2aXM3IS8N5RI+3D0XnZrTOgX1U/USgGYiMun9gi/50OiquIy0oXnZ2U2FmL8Ti39xHJ7HS7Sx6k
+XsE9UhuX2KmmfOFk/TL9mh7WSlgzF2FHzxwnWAIo3l4Co+rCut83Oa+BdQdYizG3tCEnGdsz4MzmxXp3y3mDMaMKMjqCY7sPmDfV6si
+v0fZGetV7UwzFeSvmLml8EJxkb4JguEi9c9qyXejv1emRmYVi+MoWe2djwgI+n1uPq1Mce/w4wqzns7x+Ex/MDD9PvSmMer2UAAAAAS
+UVORK5CYII=`;
 
 // init
 (function () {
@@ -124,6 +139,7 @@ let rateLimited = false;
                 <th style="padding-left:20px">total</th>
                 <th>helpful %</th>
                 <th>last flag</th>
+                <th></th>
             </tr>
             <tr id="flag-summary-global-stats">
             </tr>
@@ -146,12 +162,18 @@ let rateLimited = false;
     flagSummaryTableBody = flagSummaryTable.getElementsByTagName('tbody')[0];
 
     // some table CSS
-    GM.addStyle("#flag-summary-heading-labels th { padding-top: 6px; cursor: pointer; }");
-    GM.addStyle("#flag-summary-global-stats th { padding-bottom: 4px; border-bottom: 1px #ddd solid; }");
-    GM.addStyle("#flag-summary-table tbody tr:hover { background: rgba(127, 127, 127, .10); }");
-    GM.addStyle("#flag-summary-table tbody tr { counter-increment: siteNumber; }");
-    GM.addStyle("#flag-summary-table tbody tr td:first-child::before { content: counter(siteNumber); width: 14px; " +
-                "margin-right: 10px; color: #bbb; font-size: 10px; display: inline-block; text-align: right; margin-left: -24px; }");
+    GM.addStyle("#flag-summary-heading-labels th { padding-top:6px; cursor:pointer; }");
+    GM.addStyle("#flag-summary-global-stats th { padding-bottom:4px; border-bottom:1px #ddd solid; }");
+    GM.addStyle("#flag-summary-table tbody tr:hover { background:rgba(127,127,127,.10); }");
+    GM.addStyle("#flag-summary-table tbody tr { counter-increment:siteNumber; }");
+    GM.addStyle("#flag-summary-table tbody tr td:first-child::before { content:counter(siteNumber); width:14px; " +
+                "margin-right: 10px; color: #bbb; font-size:10px; display:inline-block; text-align:right; margin-left:-24px; }");
+    GM.addStyle("#flag-summary-table tbody tr td:last-child { width: 0px; position: relative; }");
+    GM.addStyle("#flag-summary-table .reloadbutton { cursor:pointer; width:24px; position:absolute; top:0; left:0; " +
+                "z-index:1; display:none; }");
+    GM.addStyle("#flag-summary-table tbody tr:hover .reloadbutton { display:block; }");
+    GM.addStyle("#flag-summary-table tbody tr td:last-child::after { content:''; width:24px; display:inline-block; " +
+                "position:absolute; height:100%; top:0;}");
 
     // init global flag summary
     updateGlobalFlagStats();
@@ -209,6 +231,7 @@ function updateGlobalFlagStats() {
         <th>` + formatFlagCount(flagGlobalSummaryStats.sumFlagsPending) + `</th>
         <th>` + formatFlagCount(flagGlobalSummaryStats.sumFlagsTotal) + `</th>
         <th>` + (realTotal == 0 ? '' : formatFlagPercentage(helpfulFraction)) + `</th>
+        <th></th>
         <th></th>
     `;
 }
@@ -437,7 +460,25 @@ function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
         <td>` + formatFlagCount(sumFlagsTotal) + `</td>
         <td>` + (realTotal == 0 ? '–' : formatFlagPercentage(helpfulFraction)) + `</td>
         <td style="color:#999" title="` + lastFlagTimestamp + `">` + lastFlagTimeDisplay + `</td>
+        <td><span class="reloadbutton"><img style="width:16px;height:16px;vertical-align:middle;"
+             src="data:image/png;base64,` + reloadIcon + `" /></span></td>
     `;
+    let reloadButton = siteFlagSummaryTr.getElementsByClassName('reloadbutton')[0];
+    reloadButton.onclick = function(e) {
+        reloadButton.innerHTML = '<img src="/content/img/progress-dots.gif" alt=". . ." />';
+        loadSiteFlagSummary(siteName, siteFlagSummaryUrl, function() {
+            // remove old row
+            flagSummaryTableBody.removeChild(siteFlagSummaryTr);
+            flagGlobalSummaryStats.sumFlagsTotal -= sumFlagsTotal;
+            flagGlobalSummaryStats.sumFlagsDeclined -= sumFlagsDeclined;
+            flagGlobalSummaryStats.sumFlagsDisputed -= sumFlagsDisputed;
+            flagGlobalSummaryStats.sumFlagsRetracted -= sumFlagsRetracted;
+            flagGlobalSummaryStats.sumFlagsExpired -= sumFlagsExpired;
+            flagGlobalSummaryStats.sumFlagsPending -= sumFlagsPending;
+            flagGlobalSummaryStats.sumFlagsHelpful -= sumFlagsHelpful;
+            updateGlobalFlagStats();
+        });
+    };
 
     let anchorBottom = window.pageYOffset > 9 && (window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2;
 
