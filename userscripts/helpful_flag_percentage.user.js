@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Stack Exchange Helpful Flag Percentage
 // @namespace    http://floern.com/
-// @version      1.0
+// @version      1.1
 // @description  Helpful flag percentage for the flag summary page
 // @author       enki / Floern
 // @match        *://*.stackexchange.com/users/flag-summary/*
@@ -19,12 +19,12 @@ $(function () {
 'use strict';
 
     var helpfulFlags = 0;
-    $("td > a:contains('helpful')").parent().prev().each(function () {
+    $("li div:contains('helpful')").next().each(function () {
         helpfulFlags += parseInt($(this).text().replace(",",""));
     });
 
     var declinedFlags = 0;
-    $("td > a:contains('declined')").parent().prev().each(function () {
+    $("li div:contains('declined')").next().each(function () {
         declinedFlags += parseInt($(this).text().replace(",",""));
     });
 
@@ -50,8 +50,8 @@ $(function () {
                     #progress {\
                         background: #ccc;\
                         height: 10px;\
-                        width: 220px;\
-                        margin: 6px 10px 10px 0;\
+                        width: auto;\
+                        margin: 6px 0;\
                         padding: 0px;\
                     }\
                     #progress:after {\
@@ -68,10 +68,12 @@ $(function () {
 
         $('head').append(css);
 
-        $("#flag-stat-info-table").before("<h3 id='percentHelpful' title='pending, aged away and disputed" +
+        $("#flag-summary-filter").after("<div id='percentHelpfulFrame' class='s-sidebarwidget--header'></div>");
+
+        $("#percentHelpfulFrame").append("<h3 id='percentHelpful' title='pending, aged away and disputed" +
                 " flags are not counted'><span id='percent'>" + percentHelpful + "%</span> helpful</h3>");
         $("span#percent").css("color", percentColor);
 
-        $("#percentHelpful").after("<div id='progress'></div>");
+        $("#percentHelpfulFrame").append("<div id='progress'></div>");
     }
 });

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Stack Exchange Helpful Flag Percentage
 // @namespace    http://floern.com/
-// @version      1.0
+// @version      1.1
 // @description  Helpful flag percentage for the flag summary page
 // @author       enki / Floern
 // @match        *://*.stackexchange.com/users/flag-summary/*
