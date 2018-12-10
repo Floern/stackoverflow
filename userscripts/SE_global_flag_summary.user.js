@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       1.2
+// @version       1.2.1
 // @description   Stack Exchange networkwide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
@@ -390,10 +390,10 @@ function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
     let sumFlagsHelpful = 0;
 
     // search for flag stats
-    let flagCountNodes = pageNode.querySelectorAll('#flag-stat-info-table > tbody > tr > td.col2 > a[href*="status="]');
+    let flagCountNodes = pageNode.querySelectorAll('#sidebar ul li a[href*="status="]');
     for (let i = 0; i < flagCountNodes.length; i++) {
         let flagType = parseInt(flagCountNodes[i].href.replace(/^.+?\bstatus=(\d+).*$/, '$1'));
-        let flagCount = parseInt(previousElementSibling(flagCountNodes[i].parentElement).textContent.replace(/\D/g, ''));
+        let flagCount = parseInt(flagCountNodes[i].children[1].textContent.replace(/\D/g, ''));
 
         sumFlagsTotal += flagCount;
 
@@ -540,16 +540,6 @@ function formatTimeRelative(e) {
     else {
         return e;
     }
-}
-
-/**
- * Find the previous non-text sibling node.
- */
-function previousElementSibling(node) {
-    do {
-        node = node.previousSibling;
-    } while (node && node.nodeType !== 1);
-    return node;
 }
 
 /**
