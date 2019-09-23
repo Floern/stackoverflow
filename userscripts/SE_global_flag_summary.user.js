@@ -258,8 +258,8 @@ function loadAccountList() {
  * Parse the network account list.
  */
 function parseNetworkAccounts(html) {
-    let pageNode = document.createElement('div');
-    pageNode.innerHTML = html;
+    let parser = new DOMParser();
+    let pageNode = parser.parseFromString(html, 'text/html');
 
     let accounts = [];
 
@@ -378,8 +378,8 @@ function loadSiteFlagSummary(siteName, siteFlagSummaryUrl, finishedCallback) {
  * Parse the flag summary site and extract the stats.
  */
 function parseSiteFlagSummary(siteName, siteFlagSummaryUrl, html) {
-    let pageNode = document.createElement('div');
-    pageNode.innerHTML = html;
+    let parser = new DOMParser();
+    let pageNode = parser.parseFromString(html, 'text/html');
 
     let sumFlagsTotal = 0;
     let sumFlagsDeclined = 0;
