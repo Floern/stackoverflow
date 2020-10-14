@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name          Stack Exchange Flag Tracker
+// @name          Stack Exchange Flag Tracker (Deprecated)
 // @namespace     https://so.floern.com/
-// @version       1.1
+// @version       1.1.1
 // @description   Tracks flagged posts on Stack Exchange.
 // @author        Floern
 // @match         *://*.stackexchange.com/*/*
@@ -17,8 +17,8 @@
 // @require       https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js
 // @grant         GM.xmlHttpRequest
 // @grant         GM_xmlhttpRequest
-// @updateURL     https://raw.githubusercontent.com/Floern/stackoverflow/master/userscripts/flagtracker.meta.js
-// @downloadURL   https://raw.githubusercontent.com/Floern/stackoverflow/master/userscripts/flagtracker.user.js
+// @updateURL     https://github.com/SOBotics/Userscripts/raw/master/GenericBot/flagtracker.user.js
+// @downloadURL   https://github.com/SOBotics/Userscripts/raw/master/GenericBot/flagtracker.user.js
 // ==/UserScript==
 
 function computeContentHash(postContent) {
