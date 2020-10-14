@@ -3,7 +3,7 @@
 <sup>Quick install:</sup>  
 [<sup>Stack Exchange Global Flag Summary</sup>](SE_global_flag_summary.user.js?raw=true)  
 [<sup>Helpful Flag Percentage</sup>](helpful_flag_percentage.user.js?raw=true)  
-[<sup>Flag Tracker</sup>](flagtracker.user.js?raw=true)  
+[<sup>Flag Tracker</sup>](https://github.com/SOBotics/Userscripts/raw/master/GenericBot/flagtracker.user.js)  
 
 ---
 
@@ -48,6 +48,8 @@ Fork of [Overall Percentage of Helpful Flags](https://meta.stackoverflow.com/q/3
 ---
 
 ## Flag Tracker
+
+*Deprecated: This Userscript has been moved to the [SOBotics Userscripts repository](https://github.com/SOBotics/Userscripts/tree/master/GenericBot).*
 
 When you flag a post, this userscript will let you monitor that post and notify you in case the post gets edited.
 
