@@ -4,7 +4,6 @@
 [<sup>Stack Exchange Global Flag Summary</sup>](SE_global_flag_summary.user.js?raw=true)  
 [<sup>Helpful Flag Percentage</sup>](helpful_flag_percentage.user.js?raw=true)  
 [<sup>Flag Tracker</sup>](flagtracker.user.js?raw=true)  
-[<sup>Auto Review</sup>](SO_auto_review.user.js?raw=true)
 
 ---
 
@@ -59,20 +58,3 @@ If a post you flagged has been edited, you will be pinged by [@GenericBot](http:
 ### Install
 
 [view source](flagtracker.user.js) | [direct link (install)](flagtracker.user.js?raw=true)
-
----
-
-## Auto Review
-
-Automatically skips through the *First Posts* and *Late Answers* review queue on Stack Overflow and completes a review task of a post that you have already handled outside of the queue.
-
-This is meant to be used in combination with the *New Answers to Old Questions* tool or any other tool that allows you to review posts outside of the normal review queues.
-
-### Warning
-
-This userscript is experimental. Use at your own risk.
-
-### Install
-
-[view source](SO_auto_review.user.js) | [direct link (install)](SO_auto_review.user.js?raw=true)
-

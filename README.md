@@ -8,6 +8,4 @@
 
 [Flag Tracker](userscripts#flag-tracker) &ndash; Tracks flagged posts on Stack Overflow.
 
-[Auto Review](userscripts#auto-review) &ndash; Automatically skips through the review queue and completes a review task of a post that you have already handled outside of the queue.
-
 <sub>Licensed under [MIT License](LICENSE)</sub>
