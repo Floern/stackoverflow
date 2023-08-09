@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Stack Exchange Global Flag Summary
 // @namespace     http://floern.com/
-// @version       1.2.2
+// @version       1.2.3
 // @description   Stack Exchange networkwide flag summary available in your network profile
 // @author        Floern
 // @include       *://stackexchange.com/users/*/*
@@ -207,7 +207,7 @@ function showGlobalFlagSummaryLink() {
 
     // add link to header
     let segfsLink = document.createElement('a');
-    segfsLink.setAttribute('href', '//stackexchange.com/users/current?tab=flags');
+    segfsLink.setAttribute('href', 'https://stackexchange.com/users/current?tab=flags');
     segfsLink.textContent = 'Global Flag Summary';
     segfsLink.style.float = 'right';
     segfsLink.style.paddingTop = '13px';
@@ -240,7 +240,7 @@ function updateGlobalFlagStats() {
  * Load the network account list.
  */
 function loadAccountList() {
-    let accountListUrl = '//stackexchange.com/users/current?tab=accounts';
+    let accountListUrl = 'https://stackexchange.com/users/current?tab=accounts';
     GM.xmlHttpRequest({
         method: 'GET',
         url: accountListUrl,
