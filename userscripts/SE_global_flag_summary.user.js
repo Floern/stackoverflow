@@ -290,7 +290,7 @@ function parseNetworkAccounts(html) {
         accounts.push({siteName: siteName, flagSummaryUrl: siteFlagSummaryUrl, loadPriority: badgeCount});
 
         // add meta site
-        if (!/(meta\.stackexchange|area51\.stackexchange|stackapps)\.com\//.test(siteFlagSummaryUrl)) {
+        if (!/(meta\.stackexchange|area51\.stackexchange|stackapps|agents\.meta\.stackoverflow)\.com\//.test(siteFlagSummaryUrl)) {
             let metaSiteFlagSummaryUrl;
             if (/\.stackexchange\.com\//.test(siteFlagSummaryUrl)) // SE 2.0 sites
                 metaSiteFlagSummaryUrl = siteFlagSummaryUrl.replace('.stackexchange.com', '.meta.stackexchange.com');
