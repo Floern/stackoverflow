@@ -72,15 +72,13 @@ UVORK5CYII=`;
         return;
     }
 
-    let navigation = document.querySelector('#content .contentWrapper .subheader');
+    let navigation = document.querySelector('#content ul.s-navigation');
     if (!navigation) {
         return;
     }
 
-    let tabbar = navigation.querySelector('.tabs');
-
     // verify that we are in the profile of the logged in user
-    let tabs = tabbar.getElementsByTagName('a');
+    let tabs = navigation.getElementsByTagName('a');
     let loggedIn = false;
     for (let i = 0; i < tabs.length; i++) {
         if (tabs[i].textContent.trim().toLowerCase() == 'inbox') {
@@ -96,18 +94,26 @@ UVORK5CYII=`;
     let flagTab = document.createElement('a');
     flagTab.setAttribute('href', '?tab=flags');
     flagTab.textContent = 'flags';
-    tabs[4].parentNode.insertBefore(flagTab, tabs[4]);
+    flagTab.title = 'Your flags across the network';
+    // copy classes, aside from is-selected, from another tab to ensure styling
+    flagTab.className = tabs[0].className;
+    flagTab.classList.remove('is-selected');
+    let flagTabItem = document.createElement('li');
+    flagTabItem.appendChild(flagTab);
+    let tabItem4 = tabs[4].parentNode;
+    tabItem4.parentNode.insertBefore(flagTabItem, tabItem4);
 
     if (!window.location.href.match(/:\/\/stackexchange\.com\/users\/\d+\/.+?\?tab=flags/i)) {
         return;
     }
 
     // unselect default tab
-    let selectedTab = navigation.querySelector('.youarehere');
-    selectedTab.className = '';
+    let selectedTab = navigation.querySelector('.is-selected');
+    let selectedTabClasses = selectedTab.className;
+    selectedTab.classList.remove('is-selected');
 
     // set selected tab to flags
-    flagTab.className = 'youarehere';
+    flagTab.classList.add('is-selected');
 
     // remove default content
     while (navigation.nextSibling) {
